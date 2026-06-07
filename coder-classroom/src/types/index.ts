@@ -1,5 +1,48 @@
 // Import from here: import type { Role, Assignment } from '../types';
 
+// ── Auth Types ────────────────────────────────
+
+export interface LoginCredentials {
+  email:    string;
+  password: string;
+}
+
+export interface RegisterCredentials {
+  firstName: string;
+  lastName:  string;
+  email:     string;
+  password:  string;
+  role:      Role;
+}
+
+export interface AuthUser {
+  id:        string;
+  firstName: string;
+  lastName:  string;
+  email:     string;
+  role:      Role;
+}
+
+export interface AuthResponse {
+  token: string;
+  user:  AuthUser;
+}
+
+export interface AuthContextValue {
+  user:      AuthUser | null;
+  token:     string   | null;
+  isLoading: boolean;
+  login:     (credentials: LoginCredentials)    => Promise<AuthResult>;
+  register:  (credentials: RegisterCredentials) => Promise<AuthResult>;
+  logout:    () => void;
+}
+
+export interface AuthResult {
+  success: boolean;
+  error?:  string;
+}
+
+
 // ── App-Level ─────────────────────────────────
 
 /** Top-level screen the app can show */

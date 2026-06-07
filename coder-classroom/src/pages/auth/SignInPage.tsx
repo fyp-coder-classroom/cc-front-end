@@ -4,6 +4,7 @@ import { useState, type FC } from "react";
 import type { AuthPageProps } from "../../types";
 import { GridIcon, ChevronRight } from "../../components/ui/Icons";
 
+
 const FEATURE_LIST: string[] = [
   "Access all your assignments",
   "Submit code from the browser",
