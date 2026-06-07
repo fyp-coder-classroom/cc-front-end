@@ -2,18 +2,19 @@
 // components/layout/AppShell.tsx
 // Authenticated app wrapper: sidebar + main content.
 // Renders the correct page based on role and active page.
-// Props: see AppShellProps in types/index.ts
 // ─────────────────────────────────────────────
 
 import { useState, type FC } from "react";
 import type { AppShellProps, Page } from "../../types";
-import Sidebar          from "./Sidebar";
+import { useAuth } from "../../context/AuthContext";
+import Sidebar from "./Sidebar";
 import TeacherDashboard from "../../pages/teacher/TeacherDashboard";
-import TeacherClasses   from "../../pages/teacher/TeacherClasses";
+import TeacherClasses from "../../pages/teacher/TeacherClasses";
 import StudentDashboard from "../../pages/student/StudentDashboard";
-import StudentClasses   from "../../pages/student/StudentClasses";
+import StudentClasses from "../../pages/student/StudentClasses";
 
-const AppShell: FC<AppShellProps> = ({ role, setScreen }) => {
+const AppShell: FC<AppShellProps> = ({ role }) => {
+  const { logout } = useAuth();
   const [page, setPage] = useState<Page>("dashboard");
 
   const renderPage = () => {
@@ -29,7 +30,7 @@ const AppShell: FC<AppShellProps> = ({ role, setScreen }) => {
         role={role}
         activePage={page}
         setPage={setPage}
-        setScreen={setScreen}
+        onLogout={logout}
       />
       <main className="flex-1 ml-[110px] p-5 sm:p-6 lg:p-8 overflow-auto">
         {renderPage()}

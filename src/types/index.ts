@@ -3,45 +3,43 @@
 // ── Auth Types ────────────────────────────────
 
 export interface LoginCredentials {
-  email:    string;
+  email: string;
   password: string;
 }
 
 export interface RegisterCredentials {
-  firstName: string;
-  lastName:  string;
-  email:     string;
-  password:  string;
-  role:      Role;
+  name: string; // single field — matches backend
+  email: string;
+  password: string;
+  role: Role;
 }
 
 export interface AuthUser {
-  id:        string;
-  firstName: string;
-  lastName:  string;
-  email:     string;
-  role:      Role;
+  id: string;
+  name: string; // single field — matches backend
+  email: string;
+  role: Role;
 }
 
 export interface AuthResponse {
-  token: string;
-  user:  AuthUser;
+  user: AuthUser;
+  authTokens: Tokens; // backend key
+  tokens?: Tokens; // alias for forward compat
+}
+
+export interface Tokens {
+  access: { token: string; expires: string | Date };
+  refresh: { token: string; expires: string | Date };
 }
 
 export interface AuthContextValue {
-  user:      AuthUser | null;
-  token:     string   | null;
+  user: AuthUser | null;
+  token: string | null;
   isLoading: boolean;
-  login:     (credentials: LoginCredentials)    => Promise<AuthResult>;
-  register:  (credentials: RegisterCredentials) => Promise<AuthResult>;
-  logout:    () => void;
+  login: (credentials: LoginCredentials) => Promise<void>;
+  register: (credentials: RegisterCredentials) => Promise<void>;
+  logout: () => Promise<void>;
 }
-
-export interface AuthResult {
-  success: boolean;
-  error?:  string;
-}
-
 
 // ── App-Level ─────────────────────────────────
 
@@ -76,7 +74,7 @@ export interface StatCardData {
 }
 
 export interface ActivityItem {
-  dot: string;       // Tailwind bg color class e.g. "bg-green-400"
+  dot: string; // Tailwind bg color class e.g. "bg-green-400"
   text: string;
   time: string;
 }
@@ -94,7 +92,7 @@ export interface TopPerformer {
   initials: string;
   name: string;
   pts: number;
-  color: string;    // Tailwind bg color class
+  color: string; // Tailwind bg color class
 }
 
 export interface TeacherClass {
@@ -160,17 +158,17 @@ export interface SidebarProps {
   role: Role;
   activePage: Page;
   setPage: (page: Page) => void;
-  setScreen: (screen: Screen) => void;
+  onLogout: () => void; // replaces setScreen — calls useAuth().logout()
 }
 
 export interface AppShellProps {
   role: Role;
-  setScreen: (screen: Screen) => void;
+  // setScreen removed — navigation is driven by AuthContext user state
 }
 
 export interface AuthPageProps {
   setScreen: (screen: Screen) => void;
-  setRole: (role: Role) => void;
+  // setRole removed — role comes from AuthContext user.role
 }
 
 export interface LandingPageProps {

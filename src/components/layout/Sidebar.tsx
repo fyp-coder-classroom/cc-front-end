@@ -1,11 +1,12 @@
 // ─────────────────────────────────────────────
 // components/layout/Sidebar.tsx
 // Fixed left navigation sidebar for the authenticated app.
-// Props: see SidebarProps in types/index.ts
 // ─────────────────────────────────────────────
 
 import type { FC } from "react";
-import type { SidebarProps, Page } from "../../types";
+import type { Page } from "../../types";
+import type { Role } from "../../types/auth";
+import { useAuth } from "../../context/AuthContext";
 import {
   GridIcon,
   DashboardIcon,
@@ -14,6 +15,13 @@ import {
   SignOutIcon,
 } from "../ui/Icons";
 
+interface SidebarProps {
+  role: Role;
+  activePage: Page;
+  setPage: (p: Page) => void;
+  onLogout: () => void;
+}
+
 interface NavItem {
   id: Page;
   label: string;
@@ -21,33 +29,40 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: "dashboard", label: "Dashboard",  Icon: DashboardIcon },
-  { id: "classes",   label: "My Classes", Icon: ClassesIcon   },
+  { id: "dashboard", label: "Dashboard", Icon: DashboardIcon },
+  { id: "classes", label: "My Classes", Icon: ClassesIcon },
 ];
 
-const Sidebar: FC<SidebarProps> = ({ role, activePage, setPage, setScreen }) => {
+const Sidebar: FC<SidebarProps> = ({ role, activePage, setPage, onLogout }) => {
+  const { user } = useAuth();
+
   const isTeacher = role === "teacher";
-  const userName  = isTeacher ? "Usman Ahmad" : "Hamid Raza";
-  const userRole  = isTeacher ? "Professor"   : "Student";
-  const initials  = isTeacher ? "UA"           : "HR";
+  const userName = user?.name ?? (isTeacher ? "Professor" : "Student");
+  const userRole = isTeacher ? "Professor" : "Student";
+  // Initials from the real name, e.g. "Usman Ahmad" → "UA"
+  const initials = userName
+    .split(" ")
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .slice(0, 2)
+    .join("");
 
   return (
     <aside className="w-[110px] sm:w-28 bg-[#111111] h-screen fixed left-0 top-0 flex flex-col border-r border-gray-800 z-20">
-
-      {/* ── Logo / Home ── */}
-      <div
-        className="p-4 flex items-center gap-2 cursor-pointer border-b border-gray-800"
-        onClick={() => setScreen("landing")}
-      >
+      {/* ── Logo ── */}
+      <div className="p-4 flex items-center gap-2 border-b border-gray-800">
         <GridIcon />
         <span className="text-white font-bold text-xs leading-tight hidden sm:block">
-          Coder<br />Classroom
+          Coder
+          <br />
+          Classroom
         </span>
       </div>
 
       {/* ── Main Navigation ── */}
       <nav className="flex-1 p-3 space-y-1 mt-2">
-        <p className="text-gray-500 text-[10px] uppercase tracking-widest px-2 mb-2">Overview</p>
+        <p className="text-gray-500 text-[10px] uppercase tracking-widest px-2 mb-2">
+          Overview
+        </p>
         {NAV_ITEMS.map(({ id, label, Icon }) => (
           <button
             key={id}
@@ -66,13 +81,15 @@ const Sidebar: FC<SidebarProps> = ({ role, activePage, setPage, setScreen }) => 
 
       {/* ── Account Links ── */}
       <div className="p-3 border-t border-gray-800 space-y-1">
-        <p className="text-gray-500 text-[10px] uppercase tracking-widest px-2 mb-2">Account</p>
+        <p className="text-gray-500 text-[10px] uppercase tracking-widest px-2 mb-2">
+          Account
+        </p>
         <button className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-xs text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">
           <ProfileIcon />
           <span className="hidden sm:block">Profile</span>
         </button>
         <button
-          onClick={() => setScreen("landing")}
+          onClick={onLogout}
           className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-xs text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
         >
           <SignOutIcon />
@@ -87,7 +104,9 @@ const Sidebar: FC<SidebarProps> = ({ role, activePage, setPage, setScreen }) => 
             {initials}
           </div>
           <div className="hidden sm:block">
-            <p className="text-white text-xs font-medium leading-tight">{userName}</p>
+            <p className="text-white text-xs font-medium leading-tight">
+              {userName}
+            </p>
             <p className="text-gray-500 text-[10px]">{userRole}</p>
           </div>
         </div>
