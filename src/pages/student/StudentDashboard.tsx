@@ -1,22 +1,27 @@
 import { useState, useEffect, type FC } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth }      from "../../context/AuthContext";
 import StatCard         from "../../components/ui/StatCard";
 import ProgressBar      from "../../components/ui/ProgressBar";
 import { PlusIcon }     from "../../components/ui/Icons";
 import { getStudentClassroomsAPI } from "../../services/classroomService";
+import { getAssignmentsByClassroomAPI } from "../../services/assignmentService";
 import type { Classroom } from "../../types/classroom";
+import type { Assignment } from "../../types/assignment";
 
-interface Props {
-  onOpenClassroom: (id: string) => void;
+interface AssignmentWithClassroom extends Assignment {
+  classroomName: string;
 }
 
-const StudentDashboard: FC<Props> = ({ onOpenClassroom }) => {
+const StudentDashboard: FC = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
-  const userName = (user as any)?.name ?? "Student";
+  const userName = user?.name ?? "Student";
 
-  const [classrooms,  setClassrooms]  = useState<Classroom[]>([]);
-  const [isLoading,   setIsLoading]   = useState(true);
-  const [currentDate, setCurrentDate] = useState("");
+  const [classrooms,     setClassrooms]     = useState<Classroom[]>([]);
+  const [allAssignments, setAllAssignments] = useState<AssignmentWithClassroom[]>([]);
+  const [isLoading,      setIsLoading]      = useState(true);
+  const [currentDate,    setCurrentDate]    = useState("");
 
   useEffect(() => {
     const now = new Date();
@@ -26,8 +31,20 @@ const StudentDashboard: FC<Props> = ({ onOpenClassroom }) => {
 
     const fetchData = async () => {
       try {
-        const data = await getStudentClassroomsAPI();
-        setClassrooms(data);
+        const classroomData = await getStudentClassroomsAPI();
+        setClassrooms(classroomData);
+
+        const assignmentLists = await Promise.all(
+          classroomData.map(async (c) => {
+            try {
+              const list = await getAssignmentsByClassroomAPI(c.id);
+              return list.map((a) => ({ ...a, classroomName: c.name }));
+            } catch {
+              return [] as AssignmentWithClassroom[];
+            }
+          })
+        );
+        setAllAssignments(assignmentLists.flat());
       } catch (err) {
         console.error("Student dashboard fetch error:", err);
       } finally {
@@ -37,11 +54,15 @@ const StudentDashboard: FC<Props> = ({ onOpenClassroom }) => {
     fetchData();
   }, []);
 
+  const pendingAssignments = allAssignments
+    .filter((a) => new Date(a.deadline).getTime() > Date.now())
+    .sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
+
   const stats = [
-    { label: "Enrolled Classes",  value: isLoading ? "—" : String(classrooms.length), sub: "Currently enrolled" },
-    { label: "Total Assignments", value: "—", sub: "Coming soon" },
-    { label: "Submitted",         value: "—", sub: "Coming soon" },
-    { label: "Avg. Score",        value: "—", sub: "Coming soon", accent: true },
+    { label: "Enrolled Classes",  value: isLoading ? "—" : String(classrooms.length),       sub: "Currently enrolled" },
+    { label: "Total Assignments", value: isLoading ? "—" : String(allAssignments.length),   sub: "Across all classes" },
+    { label: "Pending",           value: isLoading ? "—" : String(pendingAssignments.length), sub: "Not yet expired" },
+    { label: "Submitted",         value: "—", sub: "Coming soon", accent: true },
   ];
 
   return (
@@ -52,7 +73,10 @@ const StudentDashboard: FC<Props> = ({ onOpenClassroom }) => {
           <h1 className="text-xl font-black text-white">My Dashboard</h1>
           <p className="text-gray-500 text-xs mt-0.5">{currentDate} · Welcome, {userName}</p>
         </div>
-        <button className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors">
+        <button
+          onClick={() => navigate("/app/classes")}
+          className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors"
+        >
           <PlusIcon /> Join Class
         </button>
       </div>
@@ -66,12 +90,42 @@ const StudentDashboard: FC<Props> = ({ onOpenClassroom }) => {
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-bold text-white">Pending Assignments</h3>
-          <button className="text-xs text-gray-400 hover:text-white transition-colors">View All →</button>
         </div>
-        <div className="bg-[#1a1a1a] rounded-xl border border-dashed border-gray-700 p-8 text-center">
-          <p className="text-gray-500 text-sm">Assignments will appear here.</p>
-          <p className="text-gray-600 text-xs mt-1">Assignment module coming soon.</p>
-        </div>
+
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-24 bg-gray-800 rounded-xl animate-pulse" />
+            ))}
+          </div>
+        ) : pendingAssignments.length === 0 ? (
+          <div className="bg-[#1a1a1a] rounded-xl border border-dashed border-gray-700 p-8 text-center">
+            <p className="text-gray-500 text-sm">No pending assignments.</p>
+            <p className="text-gray-600 text-xs mt-1">You're all caught up!</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {pendingAssignments.slice(0, 6).map((a) => {
+              const classroom = classrooms.find((c) => c.name === a.classroomName);
+              return (
+                <button
+                  key={a.id}
+                  onClick={() => classroom && navigate(`/app/classes/${classroom.id}/assignments/${a.id}`)}
+                  className="bg-[#1a1a1a] rounded-xl border border-gray-800 p-4 text-left hover:border-gray-600 transition-colors"
+                >
+                  <p className="text-white font-bold text-sm truncate mb-1">{a.title}</p>
+                  <p className="text-gray-500 text-xs mb-2 truncate">{a.classroomName}</p>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-400">{a.marks} marks</span>
+                    <span className="text-gray-500">
+                      Due {new Date(a.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* My Classes Table */}
@@ -80,7 +134,9 @@ const StudentDashboard: FC<Props> = ({ onOpenClassroom }) => {
 
         {isLoading ? (
           <div className="space-y-3">
-            {[1,2,3].map(i => <div key={i} className="h-10 bg-gray-800 rounded animate-pulse" />)}
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-10 bg-gray-800 rounded animate-pulse" />
+            ))}
           </div>
         ) : classrooms.length === 0 ? (
           <div className="text-center py-8">
@@ -100,13 +156,13 @@ const StudentDashboard: FC<Props> = ({ onOpenClassroom }) => {
               <tbody className="divide-y divide-gray-800">
                 {classrooms.map((c) => (
                   <tr
-                    key={c._id || c.id}
-                    onClick={() => onOpenClassroom(c._id)}
+                    key={c.id}
+                    onClick={() => navigate(`/app/classes/${c.id}`)}
                     className="cursor-pointer hover:bg-gray-800/50 transition-colors"
                   >
                     <td className="py-3 pr-4 text-white font-medium whitespace-nowrap">{c.name}</td>
                     <td className="py-3 pr-4 text-gray-400 whitespace-nowrap">
-                      {typeof c.teacherId === "object" ? (c.teacherId as any).name : "Teacher"}
+                      {typeof c.teacherId === "object" ? c.teacherId.name : "Teacher"}
                     </td>
                     <td className="py-3 pr-4 text-gray-400 font-mono">{c.classCode}</td>
                     <td className="py-3 pr-4 w-24">

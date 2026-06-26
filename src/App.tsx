@@ -39,9 +39,20 @@ const App = () => {
         element={auth ? <Navigate to="/app" replace /> : <SignUpPage />}
       />
 
-      {/* Authenticated — no public layout */}
+      {/*
+        Authenticated — AppShell renders the sidebar + topbar shell.
+        Everything UNDER /app/* is a nested route inside AppShell's
+        own <Routes> (see AppShell.tsx) so the URL always reflects:
+          /app                                          → dashboard
+          /app/classes                                  → classroom list
+          /app/classes/:classroomId                     → classroom detail
+          /app/classes/:classroomId/assignments/:id     → assignment detail
+          /app/profile                                  → profile
+        This is what makes refresh/back-button work correctly —
+        previously this was all useState, which reset on every reload.
+      */}
       <Route
-        path="/app"
+        path="/app/*"
         element={
           auth ? <AppShell role={user.role} /> : <Navigate to="/" replace />
         }

@@ -15,7 +15,7 @@ import type {
   RoleInfo,
 } from "../types";
 
-// ── Teacher ──────────────────────────────────
+//  Teacher 
 
 export const TEACHER_STATS: StatCardData[] = [
   { label: "Total Classes",      value: "3",  sub: "↑ 1 from last semester" },
@@ -69,7 +69,7 @@ export const SUBMISSION_DAYS: string[]           = ["Mon", "Tue", "Wed", "Thu", 
 export const CLASS_AVG_BARS: number[]            = [65, 80, 55, 90, 45, 70];
 export const CLASS_AVG_LABELS: string[]          = ["A1", "A2", "A3", "A4", "A5", "A6"];
 
-// ── Student ──────────────────────────────────
+//  Student 
 
 export const STUDENT_STATS: StatCardData[] = [
   { label: "Enrolled Classes",   value: "3",   sub: "All currently" },
@@ -130,7 +130,7 @@ export const ASSIGNMENTS_CS_B: Assignment[] = [
   { name: "Stack Implementation", assigned: "Mar 28", deadline: "Apr 5",  score: "91 / 100", status: "Graded"      },
 ];
 
-// ── Landing Page ─────────────────────────────
+//  Landing Page 
 
 export const FEATURES: FeatureItem[] = [
   { title: "Classroom Management",    desc: "Organize classes and student rosters. Add assignments per class, monitor work per student." },

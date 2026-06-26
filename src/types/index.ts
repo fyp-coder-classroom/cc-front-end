@@ -1,5 +1,4 @@
 // Import from here: import type { Role, Assignment } from '../types';
-
 // Auth Types 
 
 export interface LoginCredentials {
@@ -8,7 +7,7 @@ export interface LoginCredentials {
 }
 
 export interface RegisterCredentials {
-  name: string; // single field — matches backend
+  name: string; // single field - matches backend
   email: string;
   password: string;
   role: Role;
@@ -16,7 +15,7 @@ export interface RegisterCredentials {
 
 export interface AuthUser {
   id: string;
-  name: string; // single field — matches backend
+  name: string; // single field - matches backend
   email: string;
   role: Role;
 }
@@ -64,7 +63,7 @@ export type BadgeStatus =
   | "Reviewed"
   | "Past Due";
 
-// ── Data Models 
+//  Data Models 
 
 export interface StatCardData {
   label: string;

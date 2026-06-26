@@ -1,9 +1,9 @@
-// Modal form — Teacher creates a new classroom.
+// Modal form - Teacher creates a new classroom.
 // Props:
-//   isOpen    — show/hide modal
-//   onClose   — close modal
-//   onCreate  — called with form data on submit
-//   isLoading — disables button while API is running
+//   isOpen    - show/hide modal
+//   onClose   - close modal
+//   onCreate  - called with form data on submit
+//   isLoading - disables button while API is running
 
 import { useState, type FC } from "react";
 import type { CreateClassroomBody } from "../../types/classroom";
@@ -50,7 +50,7 @@ const CreateClassroomModal: FC<Props> = ({ isOpen, onClose, onCreate, isLoading 
   };
 
   return (
-    // ── Backdrop ──
+    //- Backdrop 
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
       <div className="bg-[#1a1a1a] border border-gray-700 rounded-2xl w-full max-w-md p-6">
 

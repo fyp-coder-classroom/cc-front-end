@@ -16,7 +16,7 @@ export const useAuthStatus = (): AuthStatus => {
     isLoggedIn: !!token,
     isTeacher: user?.role === "teacher",
     isStudent: user?.role === "student",
-    // Backend stores a single "name" field — no split needed
+    // Backend stores a single "name" field - no split needed
     fullName: user?.name ?? "",
     email: user?.email ?? "",
     userId: user?.id ?? "",

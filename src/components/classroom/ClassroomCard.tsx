@@ -28,7 +28,7 @@ const ClassroomCard: FC<Props> = ({ classroom, role, onClick, onDelete }) => {
 
   return (
     <div
-      onClick={() => onClick(classroom.id || classroom._id || "")}
+      onClick={() => onClick(classroom.id)}
       className="bg-[#1a1a1a] rounded-xl border border-gray-800 p-5 hover:border-gray-600 transition-colors cursor-pointer group"
     >
       {/* ── Header ── */}
@@ -54,14 +54,14 @@ const ClassroomCard: FC<Props> = ({ classroom, role, onClick, onDelete }) => {
         ) : (
           <span>
             Teacher:{" "}
-            {typeof classroom.teacher === "object"
-              ? classroom.teacher.name
+            {typeof classroom.teacherId === "object"
+              ? classroom.teacherId.name
               : "—"}
           </span>
         )}
       </div>
 
-      {/* ── Footer ── */}
+      {/*  Footer  */}
       <div className="flex items-center justify-between pt-3 border-t border-gray-800">
         {/* Class Code + Copy */}
         <button
@@ -77,7 +77,7 @@ const ClassroomCard: FC<Props> = ({ classroom, role, onClick, onDelete }) => {
           </span>
         </button>
 
-        {/* Delete button — Teacher only */}
+        {/* Delete button - Teacher only */}
         {isTeacher && (
           <button
             onClick={handleDelete}

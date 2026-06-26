@@ -1,4 +1,5 @@
 import { useState, type FC } from "react";
+import { useNavigate } from "react-router-dom";
 import type { Classroom }       from "../../types/classroom";
 import { useAuth }              from "../../context/AuthContext";
 import { useClassrooms }        from "../../hooks/useClassrooms";
@@ -7,13 +8,10 @@ import CreateClassroomModal     from "../../components/classroom/CreateClassroom
 import DeleteConfirmModal       from "../../components/classroom/DeleteConfirmModal";
 import { PlusIcon }             from "../../components/ui/Icons";
 
-interface Props {
-  onOpenClassroom: (id: string) => void;
-}
-
-const TeacherClasses: FC<Props> = ({ onOpenClassroom }) => {
+const TeacherClasses: FC = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
-  const userName = (user as any)?.name ?? "Teacher";
+  const userName = user?.name ?? "Teacher";
 
   const {
     classrooms,
@@ -32,6 +30,7 @@ const TeacherClasses: FC<Props> = ({ onOpenClassroom }) => {
     setActionLoading(true);
     try {
       await createClassroom(body);
+      setShowCreateModal(false);
     } finally {
       setActionLoading(false);
     }
@@ -42,7 +41,7 @@ const TeacherClasses: FC<Props> = ({ onOpenClassroom }) => {
     setActionLoading(true);
     setActionError("");
     try {
-    await deleteClassroom(deleteTarget.id || deleteTarget._id || "");
+      await deleteClassroom(deleteTarget.id);
       setDeleteTarget(null);
     } catch (err: unknown) {
       const msg =
@@ -121,10 +120,10 @@ const TeacherClasses: FC<Props> = ({ onOpenClassroom }) => {
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {classrooms.map((c) => (
             <ClassroomCard
-              key={c._id}
+              key={c.id}
               classroom={c}
               role="teacher"
-              onClick={(id) => onOpenClassroom(id)}
+              onClick={(id) => navigate(`/app/classes/${id}`)}
               onDelete={(classroom) => setDeleteTarget(classroom)}
             />
           ))}

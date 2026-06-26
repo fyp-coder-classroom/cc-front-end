@@ -1,5 +1,3 @@
-// pages/LandingPage.tsx — no setScreen prop, uses useNavigate
-
 import { useEffect, useRef, useState, type FC } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, CodeIcon, CheckIcon } from "../components/ui/Icons";

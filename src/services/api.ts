@@ -1,8 +1,3 @@
-// Axios instance with:
-//   • Auth header injection
-//   • Automatic token refresh on 401
-//   • Clean logout on refresh failure
-
 import axios, {
   type AxiosInstance,
   type InternalAxiosRequestConfig,

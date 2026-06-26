@@ -1,8 +1,3 @@
-// ─────────────────────────────────────────────
-// components/layout/Footer.tsx
-// Standalone footer component for LandingPage.
-// ─────────────────────────────────────────────
-
 import type { FC } from "react";
 import { GridIcon } from "../ui/Icons";
 

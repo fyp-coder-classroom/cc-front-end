@@ -11,7 +11,7 @@ const PreAuthLayout: FC<Props> = ({ children, leftTitle, features }) => (
   <div className="min-h-screen flex flex-col sm:flex-row bg-white">
     <PreAuthNavbar />
 
-    {/* ── LEFT PANEL ── */}
+    {/*  LEFT PANEL  */}
     <div className="hidden sm:flex sm:w-[38%] bg-[#111111] flex-col justify-center px-12 pt-16">
       <h2 className="text-3xl font-black text-white leading-tight">
         {leftTitle}
@@ -26,7 +26,7 @@ const PreAuthLayout: FC<Props> = ({ children, leftTitle, features }) => (
       </ul>
     </div>
 
-    {/* ── RIGHT PANEL ── */}
+    {/*  RIGHT PANEL  */}
     <div className="flex-1 flex items-center justify-center px-8 pt-16">
       {children}
     </div>

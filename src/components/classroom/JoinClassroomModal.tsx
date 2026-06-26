@@ -1,9 +1,9 @@
-// Modal form — Student joins classroom with classCode.
+// Modal form - Student joins classroom with classCode.
 // Props:
-//   isOpen    — show/hide modal
-//   onClose   — close modal
-//   onJoin    — called with classCode on submit
-//   isLoading — disables button while API is running
+//   isOpen    - show/hide modal
+//   onClose   - close modal
+//   onJoin    - called with classCode on submit
+//   isLoading - disables button while API is running
 
 import { useState, type FC } from "react";
 

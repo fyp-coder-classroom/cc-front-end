@@ -1,17 +1,15 @@
 import { useState, type FC } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth }        from "../../context/AuthContext";
 import { useClassrooms }  from "../../hooks/useClassrooms";
 import ClassroomCard      from "../../components/classroom/ClassroomCard";
 import JoinClassroomModal from "../../components/classroom/JoinClassroomModal";
 import { PlusIcon }       from "../../components/ui/Icons";
 
-interface Props {
-  onOpenClassroom: (id: string) => void;
-}
-
-const StudentClasses: FC<Props> = ({ onOpenClassroom }) => {
+const StudentClasses: FC = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
-  const userName = (user as any)?.name ?? "Student";
+  const userName = user?.name ?? "Student";
 
   const { classrooms, isLoading, error, joinClassroom } = useClassrooms("student");
 
@@ -22,6 +20,7 @@ const StudentClasses: FC<Props> = ({ onOpenClassroom }) => {
     setJoinLoading(true);
     try {
       await joinClassroom({ classCode });
+      setShowJoinModal(false);
     } finally {
       setJoinLoading(false);
     }
@@ -88,10 +87,10 @@ const StudentClasses: FC<Props> = ({ onOpenClassroom }) => {
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {classrooms.map((c) => (
             <ClassroomCard
-              key={c._id}
+              key={c.id}
               classroom={c}
               role="student"
-              onClick={(id) => onOpenClassroom(id)}
+              onClick={(id) => navigate(`/app/classes/${id}`)}
             />
           ))}
         </div>

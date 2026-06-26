@@ -1,11 +1,16 @@
+export interface ClassroomMember {
+  id:    string;
+  name:  string;
+  email: string;
+}
+
 export interface Classroom {
-  _id?:        string;   // MongoDB raw
-  id:          string;   // toJSON plugin se aata hai ← YEH HAI REAL ID
+  id:          string;
   name:        string;
   description: string;
   classCode:   string;
-  teacherId:   string | { _id: string; id: string; name: string; email: string };
-  students:    { _id: string; id: string; name: string; email: string }[] | string[];
+  teacherId:   string | ClassroomMember;
+  students:    ClassroomMember[] | string[];
   createdAt:   string;
   updatedAt:   string;
 }

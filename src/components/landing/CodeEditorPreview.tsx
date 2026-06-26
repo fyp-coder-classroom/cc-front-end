@@ -55,7 +55,7 @@ const useTypewriter = () => {
   return displayed;
 };
 
-// Cursor blinks via a <style> tag — no Tailwind config needed
+// Cursor blinks via a <style> tag - no Tailwind config needed
 const CURSOR_STYLE = `
   @keyframes cc-blink {
     0%, 100% { opacity: 1; }

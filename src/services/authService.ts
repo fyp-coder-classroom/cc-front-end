@@ -1,5 +1,3 @@
-// Thin wrappers around the auth REST endpoints.
-
 import API from "./api";
 import type {
   LoginCredentials,
@@ -24,7 +22,7 @@ export const registerAPI = async (
   return data;
 };
 
-/** POST /auth/logout — sends refresh token to invalidate server-side session */
+/** POST /auth/logout - sends refresh token to invalidate server-side session */
 export const logoutAPI = async (refreshToken: string): Promise<void> => {
   await API.post("/auth/logout", { refreshToken });
 };
@@ -41,7 +39,7 @@ export const refreshTokenAPI = async (
   return (data as any).authTokens ?? (data as any).tokens ?? data;
 };
 
-/** GET /auth/me — fetch the current user's profile */
+/** GET /auth/me - fetch the current user's profile */
 export const getMeAPI = async (): Promise<User> => {
   const { data } = await API.get<{ user: User }>("/auth/me");
   return data.user;

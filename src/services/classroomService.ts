@@ -1,11 +1,3 @@
-// Backend routes:
-//   GET  /classrooms/teacher/my-classrooms  ← Teacher classrooms
-//   GET  /classrooms/student/my-classrooms  ← Student classrooms
-//   POST /classrooms                        ← Create
-//   POST /classrooms/join                   ← Join
-//   DELETE /classrooms/:classroomId         ← Delete
-//   GET  /classrooms/:classroomId           ← Detail
-
 import API from "./api";
 import type {
   Classroom,
@@ -13,26 +5,26 @@ import type {
   JoinClassroomBody,
 } from "../types/classroom";
 
-//  Teacher - get all classroom
+// Teacher - get all classrooms 
 export const getTeacherClassroomsAPI = async (): Promise<Classroom[]> => {
   const { data } = await API.get("/classrooms/teacher/my-classrooms");
   return data.data;
 };
 
-// Teacher - create classroom  
+// Teacher - create classroom 
 export const createClassroomAPI = async (
-  body: CreateClassroomBody
+  body: CreateClassroomBody,
 ): Promise<Classroom> => {
   const { data } = await API.post("/classrooms", body);
   return data.data;
 };
 
-//  Teacher - classroom delete  
+// Teacher - delete classroom 
 export const deleteClassroomAPI = async (id: string): Promise<void> => {
   await API.delete(`/classrooms/${id}`);
 };
 
-//  Student - joined classrooms 
+// Student - get joined classrooms 
 export const getStudentClassroomsAPI = async (): Promise<Classroom[]> => {
   const { data } = await API.get("/classrooms/student/my-classrooms");
   return data.data;
@@ -40,22 +32,28 @@ export const getStudentClassroomsAPI = async (): Promise<Classroom[]> => {
 
 //  Student - join classroom 
 export const joinClassroomAPI = async (
-  body: JoinClassroomBody
+  body: JoinClassroomBody,
 ): Promise<Classroom> => {
   const { data } = await API.post("/classrooms/join", body);
   return data.data;
 };
 
-//  Both — single classroom detail 
+//  Both - single classroom detail 
 export const getClassroomByIdAPI = async (id: string): Promise<Classroom> => {
   const { data } = await API.get(`/classrooms/${id}`);
   return data.data;
 };
 
-// ── Teacher — student remove from classroom 
+//  Teacher - remove student from classroom 
+// Backend route: DELETE /classrooms/:classroomId/students/:studentId
 export const removeStudentFromClassroomAPI = async (
   classroomId: string,
   studentId:   string
 ): Promise<void> => {
-  await API.delete(`/classrooms/${classroomId}/students/${studentId}`);
+  try {
+    await API.delete(`/classrooms/${classroomId}/students/${studentId}`);
+  } catch (err: any) {
+    if (err?.response?.status === 204) return;
+    throw err;
+  }
 };

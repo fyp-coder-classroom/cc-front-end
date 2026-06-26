@@ -57,19 +57,14 @@ export const useClassrooms = (role: Role): UseClassroomsReturn => {
     setClassrooms((prev) => [joined, ...prev]);
   };
 
-  // ── FIX: Delete ke baad immediately UI se hatao + refetch ──
-  // const deleteClassroom = async (id: string): Promise<void> => {
-  //   await deleteClassroomAPI(id);
-  //   // Immediately remove from UI — no wait
-  //   setClassrooms((prev) => prev.filter((c) => c._id !== id));
-  // };
+//  delete classroom
 const deleteClassroom = async (id: string): Promise<void> => {
   try {
     await deleteClassroomAPI(id);
   } catch {
     // ignore 204
   }
-  setClassrooms((prev) => prev.filter((c) => (c.id || c._id) !== id));
+  setClassrooms((prev) => prev.filter((c) => (c.id) !== id));
 };
   return {
     classrooms,

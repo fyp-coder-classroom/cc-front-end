@@ -1,33 +1,54 @@
 import { useState, useEffect, type FC } from "react";
-import type { Classroom } from "../../types/classroom";
+import { useParams, useNavigate } from "react-router-dom";
+import type { Classroom, ClassroomMember } from "../../types/classroom";
+import type { Assignment } from "../../types/assignment";
 import {
   getClassroomByIdAPI,
   removeStudentFromClassroomAPI,
 } from "../../services/classroomService";
+import { useAssignments } from "../../hooks/useAssignments";
+import AssignmentCard from "../../components/assignment/AssignmentCard";
+import CreateAssignmentModal from "../../components/assignment/CreateAssignmentModal";
+import DeleteAssignmentModal from "../../components/assignment/DeleteAssignmentModal";
+import { PlusIcon } from "../../components/ui/Icons";
 
 interface Props {
-  classroomId: string;
-  role:        "teacher" | "student";
-  onBack:      () => void;
+  role: "teacher" | "student";
 }
 
-interface Student {
-  _id:   string;
-  name:  string;
-  email: string;
-}
+const ClassroomDetail: FC<Props> = ({ role }) => {
+  const { classroomId } = useParams<{ classroomId: string }>();
+  const navigate = useNavigate();
 
-const ClassroomDetail: FC<Props> = ({ classroomId, role, onBack }) => {
-  const [classroom,      setClassroom]      = useState<Classroom | null>(null);
-  const [isLoading,      setIsLoading]      = useState(true);
-  const [error,          setError]          = useState("");
-  const [copied,         setCopied]         = useState(false);
-  const [removingId,     setRemovingId]     = useState<string | null>(null);
-  const [removeError,    setRemoveError]    = useState("");
-  const [confirmRemove,  setConfirmRemove]  = useState<Student | null>(null);
+  const onBack = () => navigate("/app/classes");
+  const onViewAssignment = (assignment: Assignment) =>
+    navigate(`/app/classes/${classroomId}/assignments/${assignment.id}`);
 
-  // ── Fetch classroom ───────────────────────
+  // Classroom state 
+  const [classroom, setClassroom] = useState<Classroom | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [removeError, setRemoveError] = useState("");
+  const [confirmRemove, setConfirmRemove] = useState<ClassroomMember | null>(null);
+
+  // Assignment state 
+  const {
+    assignments,
+    isLoading: assignmentsLoading,
+    error: assignmentsError,
+    createAssignment,
+    deleteAssignment,
+  } = useAssignments(classroomId ?? "");
+
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Assignment | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  // Fetch classroom 
   useEffect(() => {
+    if (!classroomId) return;
     const fetchClassroom = async () => {
       setIsLoading(true);
       try {
@@ -52,19 +73,19 @@ const ClassroomDetail: FC<Props> = ({ classroomId, role, onBack }) => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // ── Remove student ────────────────────────
-  const handleRemoveStudent = async (student: Student) => {
-    setRemovingId(student._id);
+  //  Remove student 
+  const handleRemoveStudent = async (student: ClassroomMember) => {
+    if (!classroomId) return;
+    setRemovingId(student.id);
     setRemoveError("");
     try {
-      await removeStudentFromClassroomAPI(classroomId, student._id);
-      // Update UI — remove student from list
+      await removeStudentFromClassroomAPI(classroomId, student.id);
       setClassroom((prev) => {
         if (!prev) return prev;
         return {
           ...prev,
-          students: (prev.students as Student[]).filter(
-            (s) => s._id !== student._id
+          students: (prev.students as ClassroomMember[]).filter(
+            (s) => s.id !== student.id
           ),
         };
       });
@@ -79,7 +100,30 @@ const ClassroomDetail: FC<Props> = ({ classroomId, role, onBack }) => {
     }
   };
 
-  // ── Loading ───────────────────────────────
+  //  Create assignment 
+  const handleCreate = async (body: Parameters<typeof createAssignment>[0]) => {
+    setActionLoading(true);
+    try {
+      await createAssignment(body);
+      setShowCreateModal(false);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  //  Delete assignment 
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    setActionLoading(true);
+    try {
+      await deleteAssignment(deleteTarget.id);
+      setDeleteTarget(null);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  //  Loading 
   if (isLoading) {
     return (
       <div>
@@ -102,7 +146,7 @@ const ClassroomDetail: FC<Props> = ({ classroomId, role, onBack }) => {
     );
   }
 
-  // ── Error ─────────────────────────────────
+  //  Error 
   if (error || !classroom) {
     return (
       <div>
@@ -119,26 +163,25 @@ const ClassroomDetail: FC<Props> = ({ classroomId, role, onBack }) => {
     );
   }
 
-  const isTeacher    = role === "teacher";
-  const teacherName  = typeof classroom.teacherId === "object"
-    ? (classroom.teacherId as any).name
-    : "Teacher";
-  const students     = (classroom.students as Student[]) ?? [];
+  const isTeacher = role === "teacher";
+  const teacherName =
+    typeof classroom.teacherId === "object" ? classroom.teacherId.name : "Teacher";
+  const students = (classroom.students as ClassroomMember[]) ?? [];
   const studentCount = students.length;
 
   return (
-    <div>
+    <div className="space-y-6">
 
-      {/* ── Back Button ── */}
+      {/*  Back Button  */}
       <button
         onClick={onBack}
-        className="flex items-center gap-2 text-gray-400 hover:text-white text-sm mb-6 transition-colors"
+        className="flex items-center gap-2 text-gray-400 hover:text-white text-sm transition-colors"
       >
         ← Back to Classes
       </button>
 
       {/* ── Header ── */}
-      <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
+      <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-black text-white">{classroom.name}</h1>
           <p className="text-gray-400 text-sm mt-1">
@@ -146,7 +189,6 @@ const ClassroomDetail: FC<Props> = ({ classroomId, role, onBack }) => {
           </p>
         </div>
 
-        {/* Class Code — click to copy */}
         <button
           onClick={handleCopyCode}
           className="flex items-center gap-2 bg-[#1a1a1a] border border-gray-700 rounded-xl px-4 py-2.5 hover:border-gray-500 transition-colors group"
@@ -161,8 +203,8 @@ const ClassroomDetail: FC<Props> = ({ classroomId, role, onBack }) => {
         </button>
       </div>
 
-      {/* ── Stats Row ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {/*  Stats Row  */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-4">
           <p className="text-gray-400 text-xs mb-1">Teacher</p>
           <p className="text-white font-bold text-sm truncate">{teacherName}</p>
@@ -173,8 +215,7 @@ const ClassroomDetail: FC<Props> = ({ classroomId, role, onBack }) => {
         </div>
         <div className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-4">
           <p className="text-gray-400 text-xs mb-1">Assignments</p>
-          <p className="text-white font-bold text-2xl">—</p>
-          <p className="text-gray-600 text-[10px]">Coming soon</p>
+          <p className="text-white font-bold text-2xl">{assignments.length}</p>
         </div>
         <div className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-4">
           <p className="text-gray-400 text-xs mb-1">Status</p>
@@ -184,121 +225,214 @@ const ClassroomDetail: FC<Props> = ({ classroomId, role, onBack }) => {
         </div>
       </div>
 
-      {/* ── TEACHER VIEW — Students List ── */}
+      {/*  TEACHER VIEW - Assignments + Students */}
       {isTeacher && (
-        <div className="bg-[#1a1a1a] rounded-xl border border-gray-800 p-5">
-          <h3 className="text-sm font-bold text-white mb-4">
-            Enrolled Students ({studentCount})
-          </h3>
-
-          {/* Remove error */}
-          {removeError && (
-            <div className="bg-red-900/30 border border-red-700 rounded-lg px-4 py-2.5 mb-4">
-              <p className="text-red-400 text-sm">{removeError}</p>
+        <>
+          {/* Assignments — shown first */}
+          <div className="bg-[#1a1a1a] rounded-xl border border-gray-800 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-bold text-white">
+                Assignments ({assignments.length})
+              </h3>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center gap-2 bg-white text-black px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors"
+              >
+                <PlusIcon /> New Assignment
+              </button>
             </div>
-          )}
 
-          {studentCount === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-500 text-sm">No students enrolled yet.</p>
-              <p className="text-gray-600 text-xs mt-1">
-                Share the class code{" "}
-                <span className="font-mono text-gray-400">{classroom.classCode}</span>{" "}
-                with your students.
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="border-b border-gray-800">
-                    {["#", "Name", "Email", "Action"].map((h) => (
-                      <th
-                        key={h}
-                        className="text-left text-gray-500 pb-2 pr-4 font-medium whitespace-nowrap"
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-800">
-                  {students.map((student, i) => (
-                    <tr key={student._id} className="group">
-                      <td className="py-3 pr-4 text-gray-500">{i + 1}</td>
+            {assignmentsLoading && (
+              <div className="space-y-3">
+                {[1, 2].map((i) => (
+                  <div key={i} className="h-32 bg-gray-800 rounded-xl animate-pulse" />
+                ))}
+              </div>
+            )}
 
-                      {/* Avatar + Name */}
-                      <td className="py-3 pr-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full bg-gray-700 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                            {student.name?.charAt(0).toUpperCase() ?? "?"}
-                          </div>
-                          <span className="text-white font-medium">
-                            {student.name ?? "—"}
-                          </span>
-                        </div>
-                      </td>
+            {!assignmentsLoading && assignmentsError && (
+              <div className="bg-red-900/30 border border-red-700 rounded-xl p-4 text-center">
+                <p className="text-red-400 text-sm">{assignmentsError}</p>
+              </div>
+            )}
 
-                      <td className="py-3 pr-4 text-gray-400">{student.email ?? "—"}</td>
+            {!assignmentsLoading && !assignmentsError && assignments.length === 0 && (
+              <div className="text-center py-10 border border-dashed border-gray-700 rounded-xl">
+                <p className="text-gray-500 text-sm mb-1">No assignments yet.</p>
+                <p className="text-gray-600 text-xs mb-4">
+                  Create your first assignment for this classroom.
+                </p>
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors mx-auto"
+                >
+                  <PlusIcon /> Create Assignment
+                </button>
+              </div>
+            )}
 
-                      {/* Remove Button */}
-                      <td className="py-3">
-                        <button
-                          onClick={() => setConfirmRemove(student)}
-                          disabled={removingId === student._id}
-                          className="text-xs text-red-500 hover:text-red-400 border border-transparent hover:border-red-800 px-2 py-1 rounded transition-all disabled:opacity-50"
-                        >
-                          {removingId === student._id ? "Removing..." : "Remove"}
-                        </button>
-                      </td>
+            {!assignmentsLoading && !assignmentsError && assignments.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {assignments.map((a) => (
+                  <AssignmentCard
+                    key={a.id}
+                    assignment={a}
+                    role="teacher"
+                    onView={(assignment) => onViewAssignment(assignment)}
+                    onDelete={(assignment) => setDeleteTarget(assignment)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Students - shown second */}
+          <div className="bg-[#1a1a1a] rounded-xl border border-gray-800 p-5">
+            <h3 className="text-sm font-bold text-white mb-4">
+              Enrolled Students ({studentCount})
+            </h3>
+
+            {removeError && (
+              <div className="bg-red-900/30 border border-red-700 rounded-lg px-4 py-2.5 mb-4">
+                <p className="text-red-400 text-sm">{removeError}</p>
+              </div>
+            )}
+
+            {studentCount === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500 text-sm">No students enrolled yet.</p>
+                <p className="text-gray-600 text-xs mt-1">
+                  Share the class code{" "}
+                  <span className="font-mono text-gray-400">{classroom.classCode}</span>{" "}
+                  with your students.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-gray-800">
+                      {["#", "Name", "Email", "Action"].map((h) => (
+                        <th key={h} className="text-left text-gray-500 pb-2 pr-4 font-medium whitespace-nowrap">
+                          {h}
+                        </th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+                  </thead>
+                  <tbody className="divide-y divide-gray-800">
+                    {students.map((student, i) => (
+                      <tr key={student.id} className="group">
+                        <td className="py-3 pr-4 text-gray-500">{i + 1}</td>
+                        <td className="py-3 pr-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-full bg-gray-700 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                              {student.name?.charAt(0).toUpperCase() ?? "?"}
+                            </div>
+                            <span className="text-white font-medium">{student.name ?? "—"}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 pr-4 text-gray-400">{student.email ?? "—"}</td>
+                        <td className="py-3">
+                          <button
+                            onClick={() => setConfirmRemove(student)}
+                            disabled={removingId === student.id}
+                            className="text-xs text-red-500 hover:text-red-400 border border-transparent hover:border-red-800 px-2 py-1 rounded transition-all disabled:opacity-50"
+                          >
+                            {removingId === student.id ? "Removing..." : "Remove"}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </>
       )}
 
-      {/* ── STUDENT VIEW — Info ── */}
+      {/*  STUDENT VIEW - Info + Assignments  */}
       {!isTeacher && (
-        <div className="bg-[#1a1a1a] rounded-xl border border-gray-800 p-5">
-          <h3 className="text-sm font-bold text-white mb-4">Class Information</h3>
-          <div className="space-y-3 text-sm">
-            <div className="flex items-center justify-between py-2 border-b border-gray-800">
-              <span className="text-gray-400">Teacher</span>
-              <span className="text-white font-medium">{teacherName}</span>
-            </div>
-            <div className="flex items-center justify-between py-2 border-b border-gray-800">
-              <span className="text-gray-400">Total Students</span>
-              <span className="text-white font-medium">{studentCount}</span>
-            </div>
-            <div className="flex items-center justify-between py-2 border-b border-gray-800">
-              <span className="text-gray-400">Class Code</span>
-              <span className="text-white font-mono font-bold">{classroom.classCode}</span>
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-gray-400">Status</span>
-              <span className="bg-green-900 text-green-300 border border-green-700 px-2 py-0.5 rounded text-xs font-medium">
-                Active
-              </span>
+        <>
+          <div className="bg-[#1a1a1a] rounded-xl border border-gray-800 p-5">
+            <h3 className="text-sm font-bold text-white mb-4">Class Information</h3>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center justify-between py-2 border-b border-gray-800">
+                <span className="text-gray-400">Teacher</span>
+                <span className="text-white font-medium">{teacherName}</span>
+              </div>
+              <div className="flex items-center justify-between py-2 border-b border-gray-800">
+                <span className="text-gray-400">Total Students</span>
+                <span className="text-white font-medium">{studentCount}</span>
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-gray-400">Class Code</span>
+                <span className="text-white font-mono font-bold">{classroom.classCode}</span>
+              </div>
             </div>
           </div>
 
-          {/* Assignments placeholder */}
-          <div className="mt-6 pt-4 border-t border-gray-800">
-            <h4 className="text-sm font-bold text-white mb-3">Assignments</h4>
-            <div className="text-center py-6 bg-[#111111] rounded-xl border border-dashed border-gray-700">
-              <p className="text-gray-500 text-sm">No assignments yet.</p>
-              <p className="text-gray-600 text-xs mt-1">
-                Your teacher hasn't posted any assignments yet.
-              </p>
-            </div>
+          <div className="bg-[#1a1a1a] rounded-xl border border-gray-800 p-5">
+            <h3 className="text-sm font-bold text-white mb-4">
+              Assignments ({assignments.length})
+            </h3>
+
+            {assignmentsLoading && (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-32 bg-gray-800 rounded-xl animate-pulse" />
+                ))}
+              </div>
+            )}
+
+            {!assignmentsLoading && assignmentsError && (
+              <div className="bg-red-900/30 border border-red-700 rounded-xl p-4 text-center">
+                <p className="text-red-400 text-sm">{assignmentsError}</p>
+              </div>
+            )}
+
+            {!assignmentsLoading && !assignmentsError && assignments.length === 0 && (
+              <div className="text-center py-10">
+                <p className="text-gray-500 text-sm">No assignments yet.</p>
+                <p className="text-gray-600 text-xs mt-1">
+                  Your teacher hasn't posted any assignments yet.
+                </p>
+              </div>
+            )}
+
+            {!assignmentsLoading && !assignmentsError && assignments.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {assignments.map((a) => (
+                  <AssignmentCard
+                    key={a.id}
+                    assignment={a}
+                    role="student"
+                    onView={(assignment) => onViewAssignment(assignment)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
-        </div>
+        </>
       )}
 
-      {/* ── Remove Student Confirm Modal ── */}
+      {/* Modals  */}
+      <CreateAssignmentModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreate={handleCreate}
+        isLoading={actionLoading}
+      />
+
+      <DeleteAssignmentModal
+        isOpen={!!deleteTarget}
+        assignmentTitle={deleteTarget?.title ?? ""}
+        isLoading={actionLoading}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteTarget(null)}
+      />
+
+      {/*  Remove Student Modal  */}
       {confirmRemove && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
           <div className="bg-[#1a1a1a] border border-gray-700 rounded-2xl w-full max-w-sm p-6">
