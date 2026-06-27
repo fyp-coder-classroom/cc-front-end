@@ -102,14 +102,14 @@
 
 //   return (
 //     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 py-8">
-//       <div className="bg-[#1a1a1a] border border-gray-700 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+//       <div className="bg-surface border border-border-strong rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
 
 //         {/* Header */}
-//         <div className="flex items-center justify-between p-6 border-b border-gray-800">
-//           <h2 className="text-white font-black text-lg">New Assignment</h2>
+//         <div className="flex items-center justify-between p-6 border-b border-border">
+//           <h2 className="text-text font-black text-lg">New Assignment</h2>
 //           <button
 //             onClick={onClose}
-//             className="text-gray-500 hover:text-white transition-colors text-xl leading-none"
+//             className="text-text-muted hover:text-text transition-colors text-xl leading-none"
 //           >
 //             ✕
 //           </button>
@@ -125,7 +125,7 @@
 
 //           {/* Title */}
 //           <div>
-//             <label className="text-gray-400 text-xs mb-1 block">
+//             <label className="text-text-secondary text-xs mb-1 block">
 //               Title <span className="text-red-400">*</span>
 //             </label>
 //             <input
@@ -133,13 +133,13 @@
 //               value={form.title}
 //               onChange={handleChange}
 //               placeholder="e.g. Arrays & Pointers"
-//               className="w-full bg-[#111] border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-gray-500"
+//               className="w-full bg-[#111] border border-border-strong rounded-lg px-3 py-2.5 text-text text-sm placeholder-gray-600 focus:outline-none focus:border-gray-500"
 //             />
 //           </div>
 
 //           {/* Statement */}
 //           <div>
-//             <label className="text-gray-400 text-xs mb-1 block">
+//             <label className="text-text-secondary text-xs mb-1 block">
 //               Assignment Statement <span className="text-red-400">*</span>
 //             </label>
 //             <textarea
@@ -148,14 +148,14 @@
 //               onChange={handleChange}
 //               rows={5}
 //               placeholder="Describe what students need to do..."
-//               className="w-full bg-[#111] border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-gray-500 resize-none"
+//               className="w-full bg-[#111] border border-border-strong rounded-lg px-3 py-2.5 text-text text-sm placeholder-gray-600 focus:outline-none focus:border-gray-500 resize-none"
 //             />
 //           </div>
 
 //           {/* Marks + Deadline */}
 //           <div className="grid grid-cols-2 gap-4">
 //             <div>
-//               <label className="text-gray-400 text-xs mb-1 block">
+//               <label className="text-text-secondary text-xs mb-1 block">
 //                 Marks <span className="text-red-400">*</span>
 //               </label>
 //               <input
@@ -164,11 +164,11 @@
 //                 min={1}
 //                 value={form.marks}
 //                 onChange={handleChange}
-//                 className="w-full bg-[#111] border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-gray-500"
+//                 className="w-full bg-[#111] border border-border-strong rounded-lg px-3 py-2.5 text-text text-sm focus:outline-none focus:border-gray-500"
 //               />
 //             </div>
 //             <div>
-//               <label className="text-gray-400 text-xs mb-1 block">
+//               <label className="text-text-secondary text-xs mb-1 block">
 //                 Deadline <span className="text-red-400">*</span>
 //               </label>
 //               <input
@@ -178,25 +178,25 @@
 //                 onChange={handleChange}
 //                 min={minDeadline}
 //                 style={{ colorScheme: "dark" }}
-//                 className="w-full bg-[#111] border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-gray-500 [&::-webkit-calendar-picker-indicator]:invert"
+//                 className="w-full bg-[#111] border border-border-strong rounded-lg px-3 py-2.5 text-text text-sm focus:outline-none focus:border-gray-500 [&::-webkit-calendar-picker-indicator]:invert"
 //               />
 //             </div>
 //           </div>
 //         </div>
 
 //         {/* Footer */}
-//         <div className="flex items-center gap-3 p-6 border-t border-gray-800">
+//         <div className="flex items-center gap-3 p-6 border-t border-border">
 //           <button
 //             onClick={onClose}
 //             disabled={isLoading}
-//             className="flex-1 border border-gray-700 text-gray-400 py-2.5 rounded-xl text-sm font-medium hover:border-gray-500 hover:text-white transition-colors disabled:opacity-50"
+//             className="flex-1 border border-border-strong text-text-secondary py-2.5 rounded-xl text-sm font-medium hover:border-gray-500 hover:text-text transition-colors disabled:opacity-50"
 //           >
 //             Cancel
 //           </button>
 //           <button
 //             onClick={handleSubmit}
 //             disabled={isLoading}
-//             className="flex-1 bg-white text-black py-2.5 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+//             className="flex-1 bg-primary text-primary-foreground py-2.5 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
 //           >
 //             {isLoading ? (
 //               <>
@@ -214,9 +214,6 @@
 // };
 
 // export default CreateAssignmentModal;
-
-
-
 
 // components/assignment/CreateAssignmentModal.tsx
 // Teacher creates a new assignment.
@@ -236,9 +233,9 @@ import { useState, useMemo, type FC } from "react";
 import type { CreateAssignmentBody } from "../../types/assignment";
 
 interface Props {
-  isOpen:    boolean;
-  onClose:   () => void;
-  onCreate:  (body: CreateAssignmentBody) => Promise<void>;
+  isOpen: boolean;
+  onClose: () => void;
+  onCreate: (body: CreateAssignmentBody) => Promise<void>;
   isLoading: boolean;
 }
 
@@ -253,7 +250,12 @@ const toLocalDateValue = (date: Date): string =>
 const toLocalTimeValue = (date: Date): string =>
   `${pad(date.getHours())}:${pad(date.getMinutes())}`;
 
-const CreateAssignmentModal: FC<Props> = ({ isOpen, onClose, onCreate, isLoading }) => {
+const CreateAssignmentModal: FC<Props> = ({
+  isOpen,
+  onClose,
+  onCreate,
+  isLoading,
+}) => {
   // Frozen once at mount — NOT recomputed on every render. Recomputing
   // `new Date()` directly inside JSX on every render was the original
   // bug: the "min" date kept drifting forward by a few seconds/render,
@@ -262,9 +264,9 @@ const CreateAssignmentModal: FC<Props> = ({ isOpen, onClose, onCreate, isLoading
   const todayMin = useMemo(() => toLocalDateValue(new Date()), []);
 
   const [form, setForm] = useState({
-    title:        "",
-    statement:    "",
-    marks:        100,
+    title: "",
+    statement: "",
+    marks: 100,
     deadlineDate: "",
     deadlineTime: "23:59",
   });
@@ -273,7 +275,7 @@ const CreateAssignmentModal: FC<Props> = ({ isOpen, onClose, onCreate, isLoading
   if (!isOpen) return null;
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({
@@ -304,7 +306,7 @@ const CreateAssignmentModal: FC<Props> = ({ isOpen, onClose, onCreate, isLoading
 
     // Combine date + time into one local Date, then validate/convert
     const [year, month, day] = form.deadlineDate.split("-").map(Number);
-    const [hour, minute]     = form.deadlineTime.split(":").map(Number);
+    const [hour, minute] = form.deadlineTime.split(":").map(Number);
     const deadline = new Date(year, month - 1, day, hour, minute);
 
     if (deadline <= new Date()) {
@@ -318,30 +320,35 @@ const CreateAssignmentModal: FC<Props> = ({ isOpen, onClose, onCreate, isLoading
 
     try {
       await onCreate({
-        title:     form.title.trim(),
+        title: form.title.trim(),
         statement: form.statement.trim(),
-        marks:     form.marks,
-        deadline:  deadline.toISOString(),
+        marks: form.marks,
+        deadline: deadline.toISOString(),
       });
-      setForm({ title: "", statement: "", marks: 100, deadlineDate: "", deadlineTime: "23:59" });
+      setForm({
+        title: "",
+        statement: "",
+        marks: 100,
+        deadlineDate: "",
+        deadlineTime: "23:59",
+      });
     } catch (err: unknown) {
       const msg =
-        (err as { response?: { data?: { message?: string } } })
-          ?.response?.data?.message ?? "Failed to create assignment.";
+        (err as { response?: { data?: { message?: string } } })?.response?.data
+          ?.message ?? "Failed to create assignment.";
       setError(msg);
     }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 py-8">
-      <div className="bg-[#1a1a1a] border border-gray-700 rounded-2xl w-full max-w-lg flex flex-col max-h-[90vh]">
-
+      <div className="bg-surface border border-border-strong rounded-2xl w-full max-w-lg flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-800 flex-shrink-0">
-          <h2 className="text-white font-black text-lg">New Assignment</h2>
+        <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
+          <h2 className="text-text font-black text-lg">New Assignment</h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-white transition-colors text-xl leading-none"
+            className="text-text-muted hover:text-text transition-colors text-xl leading-none"
           >
             ✕
           </button>
@@ -357,7 +364,7 @@ const CreateAssignmentModal: FC<Props> = ({ isOpen, onClose, onCreate, isLoading
 
           {/* Title */}
           <div>
-            <label className="text-gray-400 text-xs mb-1 block">
+            <label className="text-text-secondary text-xs mb-1 block">
               Title <span className="text-red-400">*</span>
             </label>
             <input
@@ -365,13 +372,13 @@ const CreateAssignmentModal: FC<Props> = ({ isOpen, onClose, onCreate, isLoading
               value={form.title}
               onChange={handleChange}
               placeholder="e.g. Arrays & Pointers"
-              className="w-full bg-[#111] border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-gray-500"
+              className="w-full bg-[#111] border border-border-strong rounded-lg px-3 py-2.5 text-text text-sm placeholder-gray-600 focus:outline-none focus:border-gray-500"
             />
           </div>
 
           {/* Statement */}
           <div>
-            <label className="text-gray-400 text-xs mb-1 block">
+            <label className="text-text-secondary text-xs mb-1 block">
               Assignment Statement <span className="text-red-400">*</span>
             </label>
             <textarea
@@ -380,13 +387,13 @@ const CreateAssignmentModal: FC<Props> = ({ isOpen, onClose, onCreate, isLoading
               onChange={handleChange}
               rows={5}
               placeholder="Describe what students need to do..."
-              className="w-full bg-[#111] border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-gray-500 resize-none"
+              className="w-full bg-[#111] border border-border-strong rounded-lg px-3 py-2.5 text-text text-sm placeholder-gray-600 focus:outline-none focus:border-gray-500 resize-none"
             />
           </div>
 
           {/* Marks */}
           <div>
-            <label className="text-gray-400 text-xs mb-1 block">
+            <label className="text-text-secondary text-xs mb-1 block">
               Marks <span className="text-red-400">*</span>
             </label>
             <input
@@ -395,13 +402,13 @@ const CreateAssignmentModal: FC<Props> = ({ isOpen, onClose, onCreate, isLoading
               min={1}
               value={form.marks}
               onChange={handleChange}
-              className="w-full bg-[#111] border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-gray-500"
+              className="w-full bg-[#111] border border-border-strong rounded-lg px-3 py-2.5 text-text text-sm focus:outline-none focus:border-gray-500"
             />
           </div>
 
           {/* Deadline — split date + time */}
           <div>
-            <label className="text-gray-400 text-xs mb-1 block">
+            <label className="text-text-secondary text-xs mb-1 block">
               Deadline <span className="text-red-400">*</span>
             </label>
             <div className="grid grid-cols-2 gap-3">
@@ -412,7 +419,7 @@ const CreateAssignmentModal: FC<Props> = ({ isOpen, onClose, onCreate, isLoading
                 onChange={handleChange}
                 min={todayMin}
                 style={{ colorScheme: "dark" }}
-                className="w-full bg-[#111] border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-gray-500 [&::-webkit-calendar-picker-indicator]:invert"
+                className="w-full bg-[#111] border border-border-strong rounded-lg px-3 py-2.5 text-text text-sm focus:outline-none focus:border-gray-500 [&::-webkit-calendar-picker-indicator]:invert"
               />
               <input
                 name="deadlineTime"
@@ -420,28 +427,28 @@ const CreateAssignmentModal: FC<Props> = ({ isOpen, onClose, onCreate, isLoading
                 value={form.deadlineTime}
                 onChange={handleChange}
                 style={{ colorScheme: "dark" }}
-                className="w-full bg-[#111] border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-gray-500 [&::-webkit-calendar-picker-indicator]:invert"
+                className="w-full bg-[#111] border border-border-strong rounded-lg px-3 py-2.5 text-text text-sm focus:outline-none focus:border-gray-500 [&::-webkit-calendar-picker-indicator]:invert"
               />
             </div>
-            <p className="text-gray-600 text-[11px] mt-1">
+            <p className="text-text-faint text-[11px] mt-1">
               Pick a future date and time — defaults to 23:59 (end of day).
             </p>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center gap-3 p-6 border-t border-gray-800 flex-shrink-0">
+        <div className="flex items-center gap-3 p-6 border-t border-border flex-shrink-0">
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="flex-1 border border-gray-700 text-gray-400 py-2.5 rounded-xl text-sm font-medium hover:border-gray-500 hover:text-white transition-colors disabled:opacity-50"
+            className="flex-1 border border-border-strong text-text-secondary py-2.5 rounded-xl text-sm font-medium hover:border-gray-500 hover:text-text transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={isLoading}
-            className="flex-1 bg-white text-black py-2.5 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+            className="flex-1 bg-primary text-primary-foreground py-2.5 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>

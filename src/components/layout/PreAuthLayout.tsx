@@ -12,13 +12,16 @@ const PreAuthLayout: FC<Props> = ({ children, leftTitle, features }) => (
     <PreAuthNavbar />
 
     {/*  LEFT PANEL  */}
-    <div className="hidden sm:flex sm:w-[38%] bg-[#111111] flex-col justify-center px-12 pt-16">
-      <h2 className="text-3xl font-black text-white leading-tight">
+    <div className="hidden sm:flex sm:w-[38%] bg-background flex-col justify-center px-12 pt-16">
+      <h2 className="text-3xl font-black text-text leading-tight">
         {leftTitle}
       </h2>
       <ul className="mt-8 space-y-3">
         {features.map((f) => (
-          <li key={f} className="flex items-center gap-3 text-gray-400 text-sm">
+          <li
+            key={f}
+            className="flex items-center gap-3 text-text-secondary text-sm"
+          >
             <span className="w-1.5 h-1.5 rounded-full bg-gray-500 flex-shrink-0" />
             {f}
           </li>

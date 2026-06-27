@@ -11,35 +11,37 @@ const App = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#111111] flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   const auth = !!user;
+  const animationKey = location.pathname.split("/")[1];
 
   return (
-    <Routes>
-      {/* Landing — uses PublicLayout (navbar + footer) */}
-      <Route element={<PublicLayout />}>
+    <div key={animationKey} className="animate-page">
+      <Routes>
+        {/* Landing — uses PublicLayout (navbar + footer) */}
+        <Route element={<PublicLayout />}>
+          <Route
+            path="/"
+            element={auth ? <Navigate to="/app" replace /> : <LandingPage />}
+          />
+        </Route>
+
+        {/* Auth pages — use their own PreAuthLayout (dark left panel, no footer) */}
         <Route
-          path="/"
-          element={auth ? <Navigate to="/app" replace /> : <LandingPage />}
+          path="/signin"
+          element={auth ? <Navigate to="/app" replace /> : <SignInPage />}
         />
-      </Route>
+        <Route
+          path="/signup"
+          element={auth ? <Navigate to="/app" replace /> : <SignUpPage />}
+        />
 
-      {/* Auth pages — use their own PreAuthLayout (dark left panel, no footer) */}
-      <Route
-        path="/signin"
-        element={auth ? <Navigate to="/app" replace /> : <SignInPage />}
-      />
-      <Route
-        path="/signup"
-        element={auth ? <Navigate to="/app" replace /> : <SignUpPage />}
-      />
-
-      {/*
+        {/*
         Authenticated — AppShell renders the sidebar + topbar shell.
         Everything UNDER /app/* is a nested route inside AppShell's
         own <Routes> (see AppShell.tsx) so the URL always reflects:
@@ -51,16 +53,20 @@ const App = () => {
         This is what makes refresh/back-button work correctly —
         previously this was all useState, which reset on every reload.
       */}
-      <Route
-        path="/app/*"
-        element={
-          auth ? <AppShell role={user.role} /> : <Navigate to="/" replace />
-        }
-      />
+        <Route
+          path="/app/*"
+          element={
+            auth ? <AppShell role={user.role} /> : <Navigate to="/" replace />
+          }
+        />
 
-      {/* Fallback */}
-      <Route path="*" element={<Navigate to={auth ? "/app" : "/"} replace />} />
-    </Routes>
+        {/* Fallback */}
+        <Route
+          path="*"
+          element={<Navigate to={auth ? "/app" : "/"} replace />}
+        />
+      </Routes>
+    </div>
   );
 };
 

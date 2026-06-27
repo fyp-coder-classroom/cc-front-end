@@ -4,10 +4,10 @@ import PreAuthNavbar from "./PreAuthNavbar";
 import Footer from "./Footer";
 
 const PublicLayout: FC = () => (
-  <div className="min-h-screen bg-white font-sans flex flex-col">
+  <div className="min-h-screen bg-background font-sans flex flex-col">
     <PreAuthNavbar />
     <main className="flex-1">
-      <Outlet /> {/* child route renders here */}
+      <Outlet />
     </main>
     <Footer />
   </div>

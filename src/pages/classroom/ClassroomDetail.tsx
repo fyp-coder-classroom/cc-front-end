@@ -24,16 +24,18 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
   const onViewAssignment = (assignment: Assignment) =>
     navigate(`/app/classes/${classroomId}/assignments/${assignment.id}`);
 
-  // Classroom state 
+  // Classroom state
   const [classroom, setClassroom] = useState<Classroom | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [removeError, setRemoveError] = useState("");
-  const [confirmRemove, setConfirmRemove] = useState<ClassroomMember | null>(null);
+  const [confirmRemove, setConfirmRemove] = useState<ClassroomMember | null>(
+    null,
+  );
 
-  // Assignment state 
+  // Assignment state
   const {
     assignments,
     isLoading: assignmentsLoading,
@@ -46,7 +48,7 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
   const [deleteTarget, setDeleteTarget] = useState<Assignment | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Fetch classroom 
+  // Fetch classroom
   useEffect(() => {
     if (!classroomId) return;
     const fetchClassroom = async () => {
@@ -56,8 +58,8 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
         setClassroom(data);
       } catch (err: unknown) {
         const msg =
-          (err as { response?: { data?: { message?: string } } })
-            ?.response?.data?.message ?? "Failed to load classroom.";
+          (err as { response?: { data?: { message?: string } } })?.response
+            ?.data?.message ?? "Failed to load classroom.";
         setError(msg);
       } finally {
         setIsLoading(false);
@@ -73,7 +75,7 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  //  Remove student 
+  //  Remove student
   const handleRemoveStudent = async (student: ClassroomMember) => {
     if (!classroomId) return;
     setRemovingId(student.id);
@@ -85,22 +87,22 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
         return {
           ...prev,
           students: (prev.students as ClassroomMember[]).filter(
-            (s) => s.id !== student.id
+            (s) => s.id !== student.id,
           ),
         };
       });
       setConfirmRemove(null);
     } catch (err: unknown) {
       const msg =
-        (err as { response?: { data?: { message?: string } } })
-          ?.response?.data?.message ?? "Failed to remove student.";
+        (err as { response?: { data?: { message?: string } } })?.response?.data
+          ?.message ?? "Failed to remove student.";
       setRemoveError(msg);
     } finally {
       setRemovingId(null);
     }
   };
 
-  //  Create assignment 
+  //  Create assignment
   const handleCreate = async (body: Parameters<typeof createAssignment>[0]) => {
     setActionLoading(true);
     try {
@@ -111,7 +113,7 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
     }
   };
 
-  //  Delete assignment 
+  //  Delete assignment
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
     setActionLoading(true);
@@ -123,22 +125,22 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
     }
   };
 
-  //  Loading 
+  //  Loading
   if (isLoading) {
     return (
       <div>
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-gray-400 hover:text-white text-sm mb-6 transition-colors"
+          className="flex items-center gap-2 text-text-secondary hover:text-text text-sm mb-6 transition-colors"
         >
           ← Back to Classes
         </button>
         <div className="space-y-4 animate-pulse">
-          <div className="h-8 bg-gray-800 rounded w-1/3" />
-          <div className="h-4 bg-gray-800 rounded w-1/2" />
+          <div className="h-8 bg-surface-raised rounded w-1/3" />
+          <div className="h-4 bg-surface-raised rounded w-1/2" />
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-24 bg-gray-800 rounded-xl" />
+              <div key={i} className="h-24 bg-surface-raised rounded-xl" />
             ))}
           </div>
         </div>
@@ -146,13 +148,13 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
     );
   }
 
-  //  Error 
+  //  Error
   if (error || !classroom) {
     return (
       <div>
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-gray-400 hover:text-white text-sm mb-6 transition-colors"
+          className="flex items-center gap-2 text-text-secondary hover:text-text text-sm mb-6 transition-colors"
         >
           ← Back to Classes
         </button>
@@ -165,17 +167,18 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
 
   const isTeacher = role === "teacher";
   const teacherName =
-    typeof classroom.teacherId === "object" ? classroom.teacherId.name : "Teacher";
+    typeof classroom.teacherId === "object"
+      ? classroom.teacherId.name
+      : "Teacher";
   const students = (classroom.students as ClassroomMember[]) ?? [];
   const studentCount = students.length;
 
   return (
     <div className="space-y-6">
-
       {/*  Back Button  */}
       <button
         onClick={onBack}
-        className="flex items-center gap-2 text-gray-400 hover:text-white text-sm transition-colors"
+        className="flex items-center gap-2 text-text-secondary hover:text-text text-sm transition-colors"
       >
         ← Back to Classes
       </button>
@@ -183,21 +186,21 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
       {/* ── Header ── */}
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-black text-white">{classroom.name}</h1>
-          <p className="text-gray-400 text-sm mt-1">
+          <h1 className="text-2xl font-black text-text">{classroom.name}</h1>
+          <p className="text-text-secondary text-sm mt-1">
             {classroom.description || "No description provided."}
           </p>
         </div>
 
         <button
           onClick={handleCopyCode}
-          className="flex items-center gap-2 bg-[#1a1a1a] border border-gray-700 rounded-xl px-4 py-2.5 hover:border-gray-500 transition-colors group"
+          className="flex items-center gap-2 bg-surface border border-border-strong rounded-xl px-4 py-2.5 hover:border-gray-500 transition-colors group"
         >
-          <span className="text-gray-400 text-xs">Class Code</span>
-          <span className="text-white font-mono font-bold text-lg tracking-widest">
+          <span className="text-text-secondary text-xs">Class Code</span>
+          <span className="text-text font-mono font-bold text-lg tracking-widest">
             {classroom.classCode}
           </span>
-          <span className="text-xs text-gray-500 group-hover:text-gray-300 transition-colors">
+          <span className="text-xs text-text-muted group-hover:text-text transition-colors">
             {copied ? "✓ Copied!" : "Copy"}
           </span>
         </button>
@@ -205,20 +208,20 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
 
       {/*  Stats Row  */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-4">
-          <p className="text-gray-400 text-xs mb-1">Teacher</p>
-          <p className="text-white font-bold text-sm truncate">{teacherName}</p>
+        <div className="bg-surface border border-border rounded-xl p-4">
+          <p className="text-text-secondary text-xs mb-1">Teacher</p>
+          <p className="text-text font-bold text-sm truncate">{teacherName}</p>
         </div>
-        <div className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-4">
-          <p className="text-gray-400 text-xs mb-1">Students</p>
-          <p className="text-white font-bold text-2xl">{studentCount}</p>
+        <div className="bg-surface border border-border rounded-xl p-4">
+          <p className="text-text-secondary text-xs mb-1">Students</p>
+          <p className="text-text font-bold text-2xl">{studentCount}</p>
         </div>
-        <div className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-4">
-          <p className="text-gray-400 text-xs mb-1">Assignments</p>
-          <p className="text-white font-bold text-2xl">{assignments.length}</p>
+        <div className="bg-surface border border-border rounded-xl p-4">
+          <p className="text-text-secondary text-xs mb-1">Assignments</p>
+          <p className="text-text font-bold text-2xl">{assignments.length}</p>
         </div>
-        <div className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-4">
-          <p className="text-gray-400 text-xs mb-1">Status</p>
+        <div className="bg-surface border border-border rounded-xl p-4">
+          <p className="text-text-secondary text-xs mb-1">Status</p>
           <span className="bg-green-900 text-green-300 border border-green-700 px-2 py-0.5 rounded text-xs font-medium">
             Active
           </span>
@@ -229,14 +232,14 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
       {isTeacher && (
         <>
           {/* Assignments — shown first */}
-          <div className="bg-[#1a1a1a] rounded-xl border border-gray-800 p-5">
+          <div className="bg-surface rounded-xl border border-border p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-white">
+              <h3 className="text-sm font-bold text-text">
                 Assignments ({assignments.length})
               </h3>
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="flex items-center gap-2 bg-white text-black px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors"
+                className="flex items-center gap-2 bg-primary text-primary-foreground px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors"
               >
                 <PlusIcon /> New Assignment
               </button>
@@ -245,7 +248,10 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
             {assignmentsLoading && (
               <div className="space-y-3">
                 {[1, 2].map((i) => (
-                  <div key={i} className="h-32 bg-gray-800 rounded-xl animate-pulse" />
+                  <div
+                    key={i}
+                    className="h-32 bg-surface-raised rounded-xl animate-pulse"
+                  />
                 ))}
               </div>
             )}
@@ -256,39 +262,45 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
               </div>
             )}
 
-            {!assignmentsLoading && !assignmentsError && assignments.length === 0 && (
-              <div className="text-center py-10 border border-dashed border-gray-700 rounded-xl">
-                <p className="text-gray-500 text-sm mb-1">No assignments yet.</p>
-                <p className="text-gray-600 text-xs mb-4">
-                  Create your first assignment for this classroom.
-                </p>
-                <button
-                  onClick={() => setShowCreateModal(true)}
-                  className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors mx-auto"
-                >
-                  <PlusIcon /> Create Assignment
-                </button>
-              </div>
-            )}
+            {!assignmentsLoading &&
+              !assignmentsError &&
+              assignments.length === 0 && (
+                <div className="text-center py-10 border border-dashed border-border-strong rounded-xl">
+                  <p className="text-text-muted text-sm mb-1">
+                    No assignments yet.
+                  </p>
+                  <p className="text-text-faint text-xs mb-4">
+                    Create your first assignment for this classroom.
+                  </p>
+                  <button
+                    onClick={() => setShowCreateModal(true)}
+                    className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors mx-auto"
+                  >
+                    <PlusIcon /> Create Assignment
+                  </button>
+                </div>
+              )}
 
-            {!assignmentsLoading && !assignmentsError && assignments.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {assignments.map((a) => (
-                  <AssignmentCard
-                    key={a.id}
-                    assignment={a}
-                    role="teacher"
-                    onView={(assignment) => onViewAssignment(assignment)}
-                    onDelete={(assignment) => setDeleteTarget(assignment)}
-                  />
-                ))}
-              </div>
-            )}
+            {!assignmentsLoading &&
+              !assignmentsError &&
+              assignments.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {assignments.map((a) => (
+                    <AssignmentCard
+                      key={a.id}
+                      assignment={a}
+                      role="teacher"
+                      onView={(assignment) => onViewAssignment(assignment)}
+                      onDelete={(assignment) => setDeleteTarget(assignment)}
+                    />
+                  ))}
+                </div>
+              )}
           </div>
 
           {/* Students - shown second */}
-          <div className="bg-[#1a1a1a] rounded-xl border border-gray-800 p-5">
-            <h3 className="text-sm font-bold text-white mb-4">
+          <div className="bg-surface rounded-xl border border-border p-5">
+            <h3 className="text-sm font-bold text-text mb-4">
               Enrolled Students ({studentCount})
             </h3>
 
@@ -300,10 +312,14 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
 
             {studentCount === 0 ? (
               <div className="text-center py-8">
-                <p className="text-gray-500 text-sm">No students enrolled yet.</p>
-                <p className="text-gray-600 text-xs mt-1">
+                <p className="text-text-muted text-sm">
+                  No students enrolled yet.
+                </p>
+                <p className="text-text-faint text-xs mt-1">
                   Share the class code{" "}
-                  <span className="font-mono text-gray-400">{classroom.classCode}</span>{" "}
+                  <span className="font-mono text-text-secondary">
+                    {classroom.classCode}
+                  </span>{" "}
                   with your students.
                 </p>
               </div>
@@ -311,34 +327,43 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-gray-800">
+                    <tr className="border-b border-border">
                       {["#", "Name", "Email", "Action"].map((h) => (
-                        <th key={h} className="text-left text-gray-500 pb-2 pr-4 font-medium whitespace-nowrap">
+                        <th
+                          key={h}
+                          className="text-left text-text-muted pb-2 pr-4 font-medium whitespace-nowrap"
+                        >
                           {h}
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-800">
+                  <tbody className="divide-y divide-border">
                     {students.map((student, i) => (
                       <tr key={student.id} className="group">
-                        <td className="py-3 pr-4 text-gray-500">{i + 1}</td>
+                        <td className="py-3 pr-4 text-text-muted">{i + 1}</td>
                         <td className="py-3 pr-4">
                           <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-full bg-gray-700 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                            <div className="w-7 h-7 rounded-full bg-surface-raised flex items-center justify-center text-text text-xs font-bold flex-shrink-0">
                               {student.name?.charAt(0).toUpperCase() ?? "?"}
                             </div>
-                            <span className="text-white font-medium">{student.name ?? "—"}</span>
+                            <span className="text-text font-medium">
+                              {student.name ?? "—"}
+                            </span>
                           </div>
                         </td>
-                        <td className="py-3 pr-4 text-gray-400">{student.email ?? "—"}</td>
+                        <td className="py-3 pr-4 text-text-secondary">
+                          {student.email ?? "—"}
+                        </td>
                         <td className="py-3">
                           <button
                             onClick={() => setConfirmRemove(student)}
                             disabled={removingId === student.id}
                             className="text-xs text-red-500 hover:text-red-400 border border-transparent hover:border-red-800 px-2 py-1 rounded transition-all disabled:opacity-50"
                           >
-                            {removingId === student.id ? "Removing..." : "Remove"}
+                            {removingId === student.id
+                              ? "Removing..."
+                              : "Remove"}
                           </button>
                         </td>
                       </tr>
@@ -354,33 +379,40 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
       {/*  STUDENT VIEW - Info + Assignments  */}
       {!isTeacher && (
         <>
-          <div className="bg-[#1a1a1a] rounded-xl border border-gray-800 p-5">
-            <h3 className="text-sm font-bold text-white mb-4">Class Information</h3>
+          <div className="bg-surface rounded-xl border border-border p-5">
+            <h3 className="text-sm font-bold text-text mb-4">
+              Class Information
+            </h3>
             <div className="space-y-3 text-sm">
-              <div className="flex items-center justify-between py-2 border-b border-gray-800">
-                <span className="text-gray-400">Teacher</span>
-                <span className="text-white font-medium">{teacherName}</span>
+              <div className="flex items-center justify-between py-2 border-b border-border">
+                <span className="text-text-secondary">Teacher</span>
+                <span className="text-text font-medium">{teacherName}</span>
               </div>
-              <div className="flex items-center justify-between py-2 border-b border-gray-800">
-                <span className="text-gray-400">Total Students</span>
-                <span className="text-white font-medium">{studentCount}</span>
+              <div className="flex items-center justify-between py-2 border-b border-border">
+                <span className="text-text-secondary">Total Students</span>
+                <span className="text-text font-medium">{studentCount}</span>
               </div>
               <div className="flex items-center justify-between py-2">
-                <span className="text-gray-400">Class Code</span>
-                <span className="text-white font-mono font-bold">{classroom.classCode}</span>
+                <span className="text-text-secondary">Class Code</span>
+                <span className="text-text font-mono font-bold">
+                  {classroom.classCode}
+                </span>
               </div>
             </div>
           </div>
 
-          <div className="bg-[#1a1a1a] rounded-xl border border-gray-800 p-5">
-            <h3 className="text-sm font-bold text-white mb-4">
+          <div className="bg-surface rounded-xl border border-border p-5">
+            <h3 className="text-sm font-bold text-text mb-4">
               Assignments ({assignments.length})
             </h3>
 
             {assignmentsLoading && (
               <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-32 bg-gray-800 rounded-xl animate-pulse" />
+                  <div
+                    key={i}
+                    className="h-32 bg-surface-raised rounded-xl animate-pulse"
+                  />
                 ))}
               </div>
             )}
@@ -391,27 +423,31 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
               </div>
             )}
 
-            {!assignmentsLoading && !assignmentsError && assignments.length === 0 && (
-              <div className="text-center py-10">
-                <p className="text-gray-500 text-sm">No assignments yet.</p>
-                <p className="text-gray-600 text-xs mt-1">
-                  Your teacher hasn't posted any assignments yet.
-                </p>
-              </div>
-            )}
+            {!assignmentsLoading &&
+              !assignmentsError &&
+              assignments.length === 0 && (
+                <div className="text-center py-10">
+                  <p className="text-text-muted text-sm">No assignments yet.</p>
+                  <p className="text-text-faint text-xs mt-1">
+                    Your teacher hasn't posted any assignments yet.
+                  </p>
+                </div>
+              )}
 
-            {!assignmentsLoading && !assignmentsError && assignments.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {assignments.map((a) => (
-                  <AssignmentCard
-                    key={a.id}
-                    assignment={a}
-                    role="student"
-                    onView={(assignment) => onViewAssignment(assignment)}
-                  />
-                ))}
-              </div>
-            )}
+            {!assignmentsLoading &&
+              !assignmentsError &&
+              assignments.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {assignments.map((a) => (
+                    <AssignmentCard
+                      key={a.id}
+                      assignment={a}
+                      role="student"
+                      onView={(assignment) => onViewAssignment(assignment)}
+                    />
+                  ))}
+                </div>
+              )}
           </div>
         </>
       )}
@@ -435,11 +471,15 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
       {/*  Remove Student Modal  */}
       {confirmRemove && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-          <div className="bg-[#1a1a1a] border border-gray-700 rounded-2xl w-full max-w-sm p-6">
-            <h2 className="text-white font-black text-lg mb-2">Remove Student</h2>
-            <p className="text-gray-400 text-sm mb-2">
+          <div className="bg-surface border border-border-strong rounded-2xl w-full max-w-sm p-6">
+            <h2 className="text-text font-black text-lg mb-2">
+              Remove Student
+            </h2>
+            <p className="text-text-secondary text-sm mb-2">
               Are you sure you want to remove{" "}
-              <span className="text-white font-semibold">"{confirmRemove.name}"</span>{" "}
+              <span className="text-text font-semibold">
+                "{confirmRemove.name}"
+              </span>{" "}
               from this classroom?
             </p>
             <p className="text-yellow-500 text-xs mb-6">
@@ -447,16 +487,19 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
             </p>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => { setConfirmRemove(null); setRemoveError(""); }}
+                onClick={() => {
+                  setConfirmRemove(null);
+                  setRemoveError("");
+                }}
                 disabled={removingId !== null}
-                className="flex-1 border border-gray-700 text-gray-400 py-2.5 rounded-xl text-sm font-medium hover:border-gray-500 hover:text-white transition-colors disabled:opacity-50"
+                className="flex-1 border border-border-strong text-text-secondary py-2.5 rounded-xl text-sm font-medium hover:border-gray-500 hover:text-text transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleRemoveStudent(confirmRemove)}
                 disabled={removingId !== null}
-                className="flex-1 bg-red-600 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-red-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+                className="flex-1 bg-red-600 text-text py-2.5 rounded-xl text-sm font-bold hover:bg-red-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
               >
                 {removingId ? (
                   <>

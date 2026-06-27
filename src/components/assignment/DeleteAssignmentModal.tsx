@@ -1,25 +1,29 @@
 import type { FC } from "react";
 
 interface Props {
-  isOpen:          boolean;
+  isOpen: boolean;
   assignmentTitle: string;
-  isLoading:       boolean;
-  onConfirm:       () => Promise<void>;
-  onCancel:        () => void;
+  isLoading: boolean;
+  onConfirm: () => Promise<void>;
+  onCancel: () => void;
 }
 
 const DeleteAssignmentModal: FC<Props> = ({
-  isOpen, assignmentTitle, isLoading, onConfirm, onCancel,
+  isOpen,
+  assignmentTitle,
+  isLoading,
+  onConfirm,
+  onCancel,
 }) => {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-      <div className="bg-[#1a1a1a] border border-gray-700 rounded-2xl w-full max-w-sm p-6">
-        <h2 className="text-white font-black text-lg mb-2">Delete Assignment</h2>
-        <p className="text-gray-400 text-sm mb-2">
+      <div className="bg-surface border border-border-strong rounded-2xl w-full max-w-sm p-6">
+        <h2 className="text-text font-black text-lg mb-2">Delete Assignment</h2>
+        <p className="text-text-secondary text-sm mb-2">
           Are you sure you want to delete{" "}
-          <span className="text-white font-semibold">"{assignmentTitle}"</span>?
+          <span className="text-text font-semibold">"{assignmentTitle}"</span>?
         </p>
         <p className="text-red-400 text-xs mb-6">
           ⚠ This will permanently delete this assignment.
@@ -29,14 +33,14 @@ const DeleteAssignmentModal: FC<Props> = ({
           <button
             onClick={onCancel}
             disabled={isLoading}
-            className="flex-1 border border-gray-700 text-gray-400 py-2.5 rounded-xl text-sm font-medium hover:border-gray-500 hover:text-white transition-colors disabled:opacity-50"
+            className="flex-1 border border-border-strong text-text-secondary py-2.5 rounded-xl text-sm font-medium hover:border-gray-500 hover:text-text transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
             disabled={isLoading}
-            className="flex-1 bg-red-600 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-red-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+            className="flex-1 bg-red-600 text-text py-2.5 rounded-xl text-sm font-bold hover:bg-red-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>

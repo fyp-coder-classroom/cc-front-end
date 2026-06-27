@@ -104,7 +104,7 @@ const SignInPage: FC = () => {
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute right-3 top-3 text-gray-500 hover:text-black"
+              className="absolute right-3 top-3 text-text-muted hover:text-black"
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -117,7 +117,7 @@ const SignInPage: FC = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-black text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
+            className="w-full bg-black text-text py-3 rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
           >
             {isLoading ? (
               <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -129,7 +129,7 @@ const SignInPage: FC = () => {
           </button>
         </form>
 
-        <p className="text-center text-xs text-gray-500 mt-5">
+        <p className="text-center text-xs text-text-muted mt-5">
           Don't have an account?{" "}
           <Link
             to="/signup"

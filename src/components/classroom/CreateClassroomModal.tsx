@@ -9,16 +9,21 @@ import { useState, type FC } from "react";
 import type { CreateClassroomBody } from "../../types/classroom";
 
 interface Props {
-  isOpen:    boolean;
-  onClose:   () => void;
-  onCreate:  (body: CreateClassroomBody) => Promise<void>;
+  isOpen: boolean;
+  onClose: () => void;
+  onCreate: (body: CreateClassroomBody) => Promise<void>;
   isLoading: boolean;
 }
 
-const CreateClassroomModal: FC<Props> = ({ isOpen, onClose, onCreate, isLoading }) => {
-  const [name,        setName]        = useState("");
+const CreateClassroomModal: FC<Props> = ({
+  isOpen,
+  onClose,
+  onCreate,
+  isLoading,
+}) => {
+  const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [error,       setError]       = useState("");
+  const [error, setError] = useState("");
 
   if (!isOpen) return null;
 
@@ -36,8 +41,8 @@ const CreateClassroomModal: FC<Props> = ({ isOpen, onClose, onCreate, isLoading 
       onClose();
     } catch (err: unknown) {
       const msg =
-        (err as { response?: { data?: { message?: string } } })
-          ?.response?.data?.message ?? "Failed to create classroom.";
+        (err as { response?: { data?: { message?: string } } })?.response?.data
+          ?.message ?? "Failed to create classroom.";
       setError(msg);
     }
   };
@@ -50,16 +55,15 @@ const CreateClassroomModal: FC<Props> = ({ isOpen, onClose, onCreate, isLoading 
   };
 
   return (
-    //- Backdrop 
+    //- Backdrop
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-      <div className="bg-[#1a1a1a] border border-gray-700 rounded-2xl w-full max-w-md p-6">
-
+      <div className="bg-surface border border-border-strong rounded-2xl w-full max-w-md p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-white font-black text-lg">Create New Classroom</h2>
+          <h2 className="text-text font-black text-lg">Create New Classroom</h2>
           <button
             onClick={handleClose}
-            className="text-gray-500 hover:text-white transition-colors text-xl leading-none"
+            className="text-text-muted hover:text-text transition-colors text-xl leading-none"
           >
             ✕
           </button>
@@ -75,7 +79,7 @@ const CreateClassroomModal: FC<Props> = ({ isOpen, onClose, onCreate, isLoading 
         {/* Form */}
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-gray-400 mb-1.5">
+            <label className="block text-xs font-medium text-text-secondary mb-1.5">
               Classroom Name *
             </label>
             <input
@@ -84,12 +88,12 @@ const CreateClassroomModal: FC<Props> = ({ isOpen, onClose, onCreate, isLoading 
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={isLoading}
-              className="w-full bg-[#111111] border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent disabled:opacity-50"
+              className="w-full bg-background border border-border-strong rounded-lg px-3 py-2.5 text-sm text-text placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent disabled:opacity-50"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-400 mb-1.5">
+            <label className="block text-xs font-medium text-text-secondary mb-1.5">
               Description
             </label>
             <textarea
@@ -98,7 +102,7 @@ const CreateClassroomModal: FC<Props> = ({ isOpen, onClose, onCreate, isLoading 
               onChange={(e) => setDescription(e.target.value)}
               disabled={isLoading}
               rows={3}
-              className="w-full bg-[#111111] border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent disabled:opacity-50 resize-none"
+              className="w-full bg-background border border-border-strong rounded-lg px-3 py-2.5 text-sm text-text placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent disabled:opacity-50 resize-none"
             />
           </div>
         </div>
@@ -108,14 +112,14 @@ const CreateClassroomModal: FC<Props> = ({ isOpen, onClose, onCreate, isLoading 
           <button
             onClick={handleClose}
             disabled={isLoading}
-            className="flex-1 border border-gray-700 text-gray-400 py-2.5 rounded-xl text-sm font-medium hover:border-gray-500 hover:text-white transition-colors disabled:opacity-50"
+            className="flex-1 border border-border-strong text-text-secondary py-2.5 rounded-xl text-sm font-medium hover:border-gray-500 hover:text-text transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={isLoading}
-            className="flex-1 bg-white text-black py-2.5 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="flex-1 bg-primary text-primary-foreground py-2.5 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>

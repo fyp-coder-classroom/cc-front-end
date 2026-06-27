@@ -12,51 +12,51 @@ import type {
   UpdateAssignmentBody,
 } from "../types/assignment";
 
-//  Teacher create assignment 
+//  Teacher create assignment
 export const createAssignmentAPI = async (
   classroomId: string,
-  body: CreateAssignmentBody
+  body: CreateAssignmentBody,
 ): Promise<Assignment> => {
-  const { data } = await API.post(`/classrooms/${classroomId}/assignments`, body);
+  const { data } = await API.post(`/classroom/${classroomId}/assignment`, body);
   return data.data;
 };
 
-//  Both  get all assignments in a classroom 
+//  Both  get all assignments in a classroom
 export const getAssignmentsByClassroomAPI = async (
-  classroomId: string
+  classroomId: string,
 ): Promise<Assignment[]> => {
-  const { data } = await API.get(`/classrooms/${classroomId}/assignments`);
+  const { data } = await API.get(`/classroom/${classroomId}/assignment`);
   return data.data;
 };
 
-//  Both - get single assignment 
+//  Both - get single assignment
 export const getAssignmentByIdAPI = async (
   classroomId: string,
-  assignmentId: string
+  assignmentId: string,
 ): Promise<Assignment> => {
   const { data } = await API.get(
-    `/classrooms/${classroomId}/assignments/${assignmentId}`
+    `/classroom/${classroomId}/assignment/${assignmentId}`,
   );
   return data.data;
 };
 
-//  Teacher - update assignment 
+//  Teacher - update assignment
 export const updateAssignmentAPI = async (
   classroomId: string,
   assignmentId: string,
-  body: UpdateAssignmentBody
+  body: UpdateAssignmentBody,
 ): Promise<Assignment> => {
   const { data } = await API.patch(
-    `/classrooms/${classroomId}/assignments/${assignmentId}`,
-    body
+    `/classroom/${classroomId}/assignment/${assignmentId}`,
+    body,
   );
   return data.data;
 };
 
-//  Teacher - delete assignment (204 No Content) 
+//  Teacher - delete assignment (204 No Content)
 export const deleteAssignmentAPI = async (
   classroomId: string,
-  assignmentId: string
+  assignmentId: string,
 ): Promise<void> => {
-  await API.delete(`/classrooms/${classroomId}/assignments/${assignmentId}`);
+  await API.delete(`/classroom/${classroomId}/assignment/${assignmentId}`);
 };

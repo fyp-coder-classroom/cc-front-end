@@ -1,9 +1,9 @@
 import type { FC, ReactNode } from "react";
-import type { Screen }        from "../../types";
-import { useAuth }            from "../../context/AuthContext";
+import type { Screen } from "../../types";
+import { useAuth } from "../../context/AuthContext";
 
 interface ProtectedRouteProps {
-  children:  ReactNode;
+  children: ReactNode;
   setScreen: (screen: Screen) => void;
 }
 
@@ -15,7 +15,7 @@ const ProtectedRoute: FC<ProtectedRouteProps> = ({ children, setScreen }) => {
       <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-gray-400 text-sm">Loading...</p>
+          <p className="text-text-secondary text-sm">Loading...</p>
         </div>
       </div>
     );

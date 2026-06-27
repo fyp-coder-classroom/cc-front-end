@@ -8,15 +8,20 @@
 import { useState, type FC } from "react";
 
 interface Props {
-  isOpen:    boolean;
-  onClose:   () => void;
-  onJoin:    (classCode: string) => Promise<void>;
+  isOpen: boolean;
+  onClose: () => void;
+  onJoin: (classCode: string) => Promise<void>;
   isLoading: boolean;
 }
 
-const JoinClassroomModal: FC<Props> = ({ isOpen, onClose, onJoin, isLoading }) => {
+const JoinClassroomModal: FC<Props> = ({
+  isOpen,
+  onClose,
+  onJoin,
+  isLoading,
+}) => {
   const [classCode, setClassCode] = useState("");
-  const [error,     setError]     = useState("");
+  const [error, setError] = useState("");
 
   if (!isOpen) return null;
 
@@ -36,8 +41,8 @@ const JoinClassroomModal: FC<Props> = ({ isOpen, onClose, onJoin, isLoading }) =
       onClose();
     } catch (err: unknown) {
       const msg =
-        (err as { response?: { data?: { message?: string } } })
-          ?.response?.data?.message ?? "Invalid class code. Please try again.";
+        (err as { response?: { data?: { message?: string } } })?.response?.data
+          ?.message ?? "Invalid class code. Please try again.";
       setError(msg);
     }
   };
@@ -50,20 +55,19 @@ const JoinClassroomModal: FC<Props> = ({ isOpen, onClose, onJoin, isLoading }) =
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-      <div className="bg-[#1a1a1a] border border-gray-700 rounded-2xl w-full max-w-sm p-6">
-
+      <div className="bg-surface border border-border-strong rounded-2xl w-full max-w-sm p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-white font-black text-lg">Join a Classroom</h2>
+          <h2 className="text-text font-black text-lg">Join a Classroom</h2>
           <button
             onClick={handleClose}
-            className="text-gray-500 hover:text-white transition-colors text-xl leading-none"
+            className="text-text-muted hover:text-text transition-colors text-xl leading-none"
           >
             ✕
           </button>
         </div>
 
-        <p className="text-gray-500 text-sm mb-5">
+        <p className="text-text-muted text-sm mb-5">
           Ask your teacher for the 6-character class code and enter it below.
         </p>
 
@@ -76,7 +80,7 @@ const JoinClassroomModal: FC<Props> = ({ isOpen, onClose, onJoin, isLoading }) =
 
         {/* Input */}
         <div>
-          <label className="block text-xs font-medium text-gray-400 mb-1.5">
+          <label className="block text-xs font-medium text-text-secondary mb-1.5">
             Class Code *
           </label>
           <input
@@ -86,7 +90,7 @@ const JoinClassroomModal: FC<Props> = ({ isOpen, onClose, onJoin, isLoading }) =
             onChange={(e) => setClassCode(e.target.value.toUpperCase())}
             maxLength={6}
             disabled={isLoading}
-            className="w-full bg-[#111111] border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white font-mono tracking-widest placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent disabled:opacity-50 text-center text-lg"
+            className="w-full bg-background border border-border-strong rounded-lg px-3 py-2.5 text-sm text-text font-mono tracking-widest placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent disabled:opacity-50 text-center text-lg"
           />
         </div>
 
@@ -95,14 +99,14 @@ const JoinClassroomModal: FC<Props> = ({ isOpen, onClose, onJoin, isLoading }) =
           <button
             onClick={handleClose}
             disabled={isLoading}
-            className="flex-1 border border-gray-700 text-gray-400 py-2.5 rounded-xl text-sm font-medium hover:border-gray-500 hover:text-white transition-colors disabled:opacity-50"
+            className="flex-1 border border-border-strong text-text-secondary py-2.5 rounded-xl text-sm font-medium hover:border-gray-500 hover:text-text transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={isLoading}
-            className="flex-1 bg-white text-black py-2.5 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="flex-1 bg-primary text-primary-foreground py-2.5 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>

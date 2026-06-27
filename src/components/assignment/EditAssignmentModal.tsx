@@ -12,11 +12,11 @@ import { useState, useMemo, type FC } from "react";
 import type { Assignment, UpdateAssignmentBody } from "../../types/assignment";
 
 interface Props {
-  isOpen:     boolean;
+  isOpen: boolean;
   assignment: Assignment | null;
-  onClose:    () => void;
-  onUpdate:   (assignmentId: string, body: UpdateAssignmentBody) => Promise<void>;
-  isLoading:  boolean;
+  onClose: () => void;
+  onUpdate: (assignmentId: string, body: UpdateAssignmentBody) => Promise<void>;
+  isLoading: boolean;
 }
 
 const pad = (n: number): string => String(n).padStart(2, "0");
@@ -27,15 +27,25 @@ const toLocalDateValue = (date: Date): string =>
 const toLocalTimeValue = (date: Date): string =>
   `${pad(date.getHours())}:${pad(date.getMinutes())}`;
 
-const EditAssignmentModal: FC<Props> = ({ isOpen, assignment, onClose, onUpdate, isLoading }) => {
+const EditAssignmentModal: FC<Props> = ({
+  isOpen,
+  assignment,
+  onClose,
+  onUpdate,
+  isLoading,
+}) => {
   const todayMin = useMemo(() => toLocalDateValue(new Date()), []);
 
   const [form, setForm] = useState({
-    title:        assignment?.title ?? "",
-    statement:    assignment?.statement ?? "",
-    marks:        assignment?.marks ?? 100,
-    deadlineDate: assignment ? toLocalDateValue(new Date(assignment.deadline)) : "",
-    deadlineTime: assignment ? toLocalTimeValue(new Date(assignment.deadline)) : "23:59",
+    title: assignment?.title ?? "",
+    statement: assignment?.statement ?? "",
+    marks: assignment?.marks ?? 100,
+    deadlineDate: assignment
+      ? toLocalDateValue(new Date(assignment.deadline))
+      : "",
+    deadlineTime: assignment
+      ? toLocalTimeValue(new Date(assignment.deadline))
+      : "23:59",
   });
   const [error, setError] = useState("");
 
@@ -43,9 +53,9 @@ const EditAssignmentModal: FC<Props> = ({ isOpen, assignment, onClose, onUpdate,
   const [loadedId, setLoadedId] = useState<string | null>(null);
   if (assignment && assignment.id !== loadedId) {
     setForm({
-      title:        assignment.title,
-      statement:    assignment.statement,
-      marks:        assignment.marks,
+      title: assignment.title,
+      statement: assignment.statement,
+      marks: assignment.marks,
       deadlineDate: toLocalDateValue(new Date(assignment.deadline)),
       deadlineTime: toLocalTimeValue(new Date(assignment.deadline)),
     });
@@ -56,7 +66,7 @@ const EditAssignmentModal: FC<Props> = ({ isOpen, assignment, onClose, onUpdate,
   if (!isOpen || !assignment) return null;
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({
@@ -86,7 +96,7 @@ const EditAssignmentModal: FC<Props> = ({ isOpen, assignment, onClose, onUpdate,
     }
 
     const [year, month, day] = form.deadlineDate.split("-").map(Number);
-    const [hour, minute]     = form.deadlineTime.split(":").map(Number);
+    const [hour, minute] = form.deadlineTime.split(":").map(Number);
     const deadline = new Date(year, month - 1, day, hour, minute);
 
     if (deadline <= new Date()) {
@@ -100,30 +110,29 @@ const EditAssignmentModal: FC<Props> = ({ isOpen, assignment, onClose, onUpdate,
 
     try {
       await onUpdate(assignment.id, {
-        title:     form.title.trim(),
+        title: form.title.trim(),
         statement: form.statement.trim(),
-        marks:     form.marks,
-        deadline:  deadline.toISOString(),
+        marks: form.marks,
+        deadline: deadline.toISOString(),
       });
       onClose();
     } catch (err: unknown) {
       const msg =
-        (err as { response?: { data?: { message?: string } } })
-          ?.response?.data?.message ?? "Failed to update assignment.";
+        (err as { response?: { data?: { message?: string } } })?.response?.data
+          ?.message ?? "Failed to update assignment.";
       setError(msg);
     }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 py-8">
-      <div className="bg-[#1a1a1a] border border-gray-700 rounded-2xl w-full max-w-lg flex flex-col max-h-[90vh]">
-
+      <div className="bg-surface border border-border-strong rounded-2xl w-full max-w-lg flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-800 flex-shrink-0">
-          <h2 className="text-white font-black text-lg">Edit Assignment</h2>
+        <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
+          <h2 className="text-text font-black text-lg">Edit Assignment</h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-white transition-colors text-xl leading-none"
+            className="text-text-muted hover:text-text transition-colors text-xl leading-none"
           >
             ✕
           </button>
@@ -139,7 +148,7 @@ const EditAssignmentModal: FC<Props> = ({ isOpen, assignment, onClose, onUpdate,
 
           {/* Title */}
           <div>
-            <label className="text-gray-400 text-xs mb-1 block">
+            <label className="text-text-secondary text-xs mb-1 block">
               Title <span className="text-red-400">*</span>
             </label>
             <input
@@ -147,13 +156,13 @@ const EditAssignmentModal: FC<Props> = ({ isOpen, assignment, onClose, onUpdate,
               value={form.title}
               onChange={handleChange}
               placeholder="e.g. Arrays & Pointers"
-              className="w-full bg-[#111] border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-gray-500"
+              className="w-full bg-[#111] border border-border-strong rounded-lg px-3 py-2.5 text-text text-sm placeholder-gray-600 focus:outline-none focus:border-gray-500"
             />
           </div>
 
           {/* Statement */}
           <div>
-            <label className="text-gray-400 text-xs mb-1 block">
+            <label className="text-text-secondary text-xs mb-1 block">
               Assignment Statement <span className="text-red-400">*</span>
             </label>
             <textarea
@@ -162,13 +171,13 @@ const EditAssignmentModal: FC<Props> = ({ isOpen, assignment, onClose, onUpdate,
               onChange={handleChange}
               rows={5}
               placeholder="Describe what students need to do..."
-              className="w-full bg-[#111] border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-gray-500 resize-none"
+              className="w-full bg-[#111] border border-border-strong rounded-lg px-3 py-2.5 text-text text-sm placeholder-gray-600 focus:outline-none focus:border-gray-500 resize-none"
             />
           </div>
 
           {/* Marks */}
           <div>
-            <label className="text-gray-400 text-xs mb-1 block">
+            <label className="text-text-secondary text-xs mb-1 block">
               Marks <span className="text-red-400">*</span>
             </label>
             <input
@@ -177,13 +186,13 @@ const EditAssignmentModal: FC<Props> = ({ isOpen, assignment, onClose, onUpdate,
               min={1}
               value={form.marks}
               onChange={handleChange}
-              className="w-full bg-[#111] border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-gray-500"
+              className="w-full bg-[#111] border border-border-strong rounded-lg px-3 py-2.5 text-text text-sm focus:outline-none focus:border-gray-500"
             />
           </div>
 
           {/* Deadline — split date + time */}
           <div>
-            <label className="text-gray-400 text-xs mb-1 block">
+            <label className="text-text-secondary text-xs mb-1 block">
               Deadline <span className="text-red-400">*</span>
             </label>
             <div className="grid grid-cols-2 gap-3">
@@ -194,7 +203,7 @@ const EditAssignmentModal: FC<Props> = ({ isOpen, assignment, onClose, onUpdate,
                 onChange={handleChange}
                 min={todayMin}
                 style={{ colorScheme: "dark" }}
-                className="w-full bg-[#111] border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-gray-500 [&::-webkit-calendar-picker-indicator]:invert"
+                className="w-full bg-[#111] border border-border-strong rounded-lg px-3 py-2.5 text-text text-sm focus:outline-none focus:border-gray-500 [&::-webkit-calendar-picker-indicator]:invert"
               />
               <input
                 name="deadlineTime"
@@ -202,28 +211,28 @@ const EditAssignmentModal: FC<Props> = ({ isOpen, assignment, onClose, onUpdate,
                 value={form.deadlineTime}
                 onChange={handleChange}
                 style={{ colorScheme: "dark" }}
-                className="w-full bg-[#111] border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-gray-500 [&::-webkit-calendar-picker-indicator]:invert"
+                className="w-full bg-[#111] border border-border-strong rounded-lg px-3 py-2.5 text-text text-sm focus:outline-none focus:border-gray-500 [&::-webkit-calendar-picker-indicator]:invert"
               />
             </div>
-            <p className="text-gray-600 text-[11px] mt-1">
+            <p className="text-text-faint text-[11px] mt-1">
               Pick a future date and time.
             </p>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center gap-3 p-6 border-t border-gray-800 flex-shrink-0">
+        <div className="flex items-center gap-3 p-6 border-t border-border flex-shrink-0">
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="flex-1 border border-gray-700 text-gray-400 py-2.5 rounded-xl text-sm font-medium hover:border-gray-500 hover:text-white transition-colors disabled:opacity-50"
+            className="flex-1 border border-border-strong text-text-secondary py-2.5 rounded-xl text-sm font-medium hover:border-gray-500 hover:text-text transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={isLoading}
-            className="flex-1 bg-white text-black py-2.5 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+            className="flex-1 bg-primary text-primary-foreground py-2.5 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>

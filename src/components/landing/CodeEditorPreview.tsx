@@ -72,26 +72,27 @@ const CodeEditorPreview: FC = () => {
   return (
     <>
       <style>{CURSOR_STYLE}</style>
-      <div className="bg-[#0d0d0d] rounded-2xl p-5 shadow-2xl border border-gray-800">
+      <div className="bg-editor-bg rounded-2xl p-5 shadow-2xl border border-[rgba(255,255,255,0.08)]">
         {/* Header */}
         <div className="flex items-center gap-1.5 mb-4">
           <div className="w-3 h-3 rounded-full bg-red-500" />
           <div className="w-3 h-3 rounded-full bg-yellow-400" />
           <div className="w-3 h-3 rounded-full bg-green-500" />
-          <span className="ml-3 text-gray-500 text-xs">
+          <span className="ml-3 text-text-muted text-xs">
             main.cpp — Arrays &amp; Pointers
           </span>
         </div>
 
         {/* Code */}
-        <pre className="text-xs text-green-400 font-mono leading-relaxed overflow-x-auto min-h-[180px] whitespace-pre-wrap">
+        <pre className="text-xs text-green-400 font-mono leading-relaxed overflow-x-auto min-h-[220px] whitespace-pre-wrap">
           {code}
           <span className="cc-cursor inline-block w-[7px] h-[13px] bg-green-400 ml-0.5 align-middle" />
         </pre>
 
         {/* Footer */}
-        <div className="mt-4 pt-3 border-t border-gray-800 flex items-center justify-between">
-          <span className="text-gray-500 text-xs">Output: 1 2 3 4 5</span>
+        <div className="mt-4 pt-3 border-t border-border flex items-center justify-between">
+          <span className="text-[#8c8a9a] text-xs">Output: 1 2 3 4 5</span>
+
           <span className="text-green-400 text-xs font-medium">✓ Compiled</span>
         </div>
       </div>

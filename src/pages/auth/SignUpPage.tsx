@@ -78,7 +78,7 @@ const SignUpPage: FC = () => {
     >
       <div className="w-full max-w-sm">
         <h1 className="text-3xl font-black mb-6">
-          Join <span className="text-gray-400">CoderClassroom</span>
+          Join <span className="text-text-secondary">CoderClassroom</span>
         </h1>
 
         {/* Sliding role toggle */}
@@ -100,7 +100,7 @@ const SignUpPage: FC = () => {
               onClick={() => setRole(t)}
               className={`relative z-10 flex-1 py-2 text-sm font-medium capitalize rounded-lg
                          transition-colors duration-300
-                         ${role === t ? "text-white" : "text-gray-500 hover:text-gray-800"}`}
+                         ${role === t ? "text-text" : "text-text-muted hover:text-gray-800"}`}
             >
               {t.charAt(0).toUpperCase() + t.slice(1)}
             </button>
@@ -140,7 +140,9 @@ const SignUpPage: FC = () => {
               className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black"
             />
             {errors.email && (
-              <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>
+              <p className="text-xs text-red-500 mt-1">
+                {errors.email.message}
+              </p>
             )}
           </div>
 
@@ -167,13 +169,15 @@ const SignUpPage: FC = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword((p) => !p)}
-                className="absolute right-3 top-3 text-gray-400 hover:text-black transition-colors"
+                className="absolute right-3 top-3 text-text-secondary hover:text-black transition-colors"
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
             {errors.password && (
-              <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>
+              <p className="text-xs text-red-500 mt-1">
+                {errors.password.message}
+              </p>
             )}
           </div>
 
@@ -181,20 +185,25 @@ const SignUpPage: FC = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-black text-white py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2
-                       hover:bg-gray-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full bg-black text-text py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2
+                       hover:bg-surface-raised transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
-              <>Create Account <ChevronRight /></>
+              <>
+                Create Account <ChevronRight />
+              </>
             )}
           </button>
         </form>
 
-        <p className="text-center text-xs text-gray-500 mt-5">
+        <p className="text-center text-xs text-text-muted mt-5">
           Already have an account?{" "}
-          <Link to="/signin" className="text-black font-semibold hover:underline">
+          <Link
+            to="/signin"
+            className="text-black font-semibold hover:underline"
+          >
             Sign in
           </Link>
         </p>
