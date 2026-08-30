@@ -62,6 +62,7 @@ const TeacherClasses: FC = () => {
         <button
           onClick={() => setShowCreateModal(true)}
           className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors"
+
         >
           <PlusIcon /> Create New Class
         </button>

@@ -1,6 +1,3 @@
-// Reusable page header - same across all pages
-// Dynamic title + dynamic button based on page/role
-
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { PlusIcon } from "../ui/Icons";
@@ -17,7 +14,7 @@ const PageHeader = () => {
   const isDashboard = location.pathname.endsWith("/dashboard");
   const isProfile = location.pathname.endsWith("/profile");
 
-  // ── Dynamic Page Title
+  //  Dynamic Page Title
   const getTitle = (): string => {
     if (isClassroom) return "Classroom Detail";
     if (isClasses) return "My Classes";
@@ -25,7 +22,7 @@ const PageHeader = () => {
     return "Dashboard";
   };
 
-  // ── Dynamic Button
+  //  Dynamic Button
   const getButton = () => {
     // No button on classroom detail or profile
     if (isClassroom || isProfile) return null;

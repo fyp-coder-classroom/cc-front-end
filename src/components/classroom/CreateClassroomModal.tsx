@@ -56,7 +56,7 @@ const CreateClassroomModal: FC<Props> = ({
 
   return (
     //- Backdrop
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/70 px-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
       <div className="bg-surface border border-border-strong rounded-2xl w-full max-w-md p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">

@@ -79,7 +79,7 @@ const CodeEditorPreview: FC = () => {
           <div className="w-3 h-3 rounded-full bg-yellow-400" />
           <div className="w-3 h-3 rounded-full bg-green-500" />
           <span className="ml-3 text-text-muted text-xs">
-            main.cpp — Arrays &amp; Pointers
+            main.cpp - Arrays &amp; Pointers
           </span>
         </div>
 

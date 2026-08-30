@@ -1,9 +1,4 @@
-// ─────────────────────────────────────────────
-// components/ui/Icons.tsx
-// All reusable SVG icon components.
-// Each icon is a React functional component with no props.
 // Usage: import { GridIcon, PlusIcon } from '../components/ui/Icons';
-// ─────────────────────────────────────────────
 
 import type { FC } from "react";
 

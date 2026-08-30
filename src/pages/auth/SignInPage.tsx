@@ -117,10 +117,10 @@ const SignInPage: FC = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-black text-text py-3 rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
+            className="w-full bg-black text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
           >
             {isLoading ? (
-              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span className="w-4 h-4 border-2 border-white white border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
                 Sign In <ChevronRight />

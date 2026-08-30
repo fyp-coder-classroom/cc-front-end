@@ -4,10 +4,23 @@ import LandingPage from "./pages/LandingPage";
 import SignInPage from "./pages/auth/SignInPage";
 import SignUpPage from "./pages/auth/SignUpPage";
 import AppShell from "./components/layout/AppShell";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
+
+const PageTransition = ({ children }: { children: React.ReactNode }) => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    transition={{ duration: 0.35, ease: "easeInOut" }}
+  >
+    {children}
+  </motion.div>
+);
 
 const App = () => {
   const { user, isLoading } = useAuth();
+  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -20,45 +33,59 @@ const App = () => {
   const auth = !!user;
 
   return (
-    <Routes>
-      {/* Landing — uses PublicLayout (navbar + footer) */}
-      <Route element={<PublicLayout />}>
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={auth ? "auth" : "guest"}>
+
+        {/* Landing */}
+        <Route element={<PublicLayout />}>
+          <Route
+            path="/"
+            element={
+              auth
+                ? <Navigate to="/app" replace />
+                : <PageTransition><LandingPage /></PageTransition>
+            }
+          />
+        </Route>
+
+        {/* Sign In */}
         <Route
-          path="/"
-          element={auth ? <Navigate to="/app" replace /> : <LandingPage />}
+          path="/signin"
+          element={
+            auth
+              ? <Navigate to="/app" replace />
+              : <PageTransition><SignInPage /></PageTransition>
+          }
         />
-      </Route>
 
-      {/* Auth pages — use their own PreAuthLayout (dark left panel, no footer) */}
-      <Route
-        path="/signin"
-        element={auth ? <Navigate to="/app" replace /> : <SignInPage />}
-      />
-      <Route
-        path="/signup"
-        element={auth ? <Navigate to="/app" replace /> : <SignUpPage />}
-      />
+        {/* Sign Up */}
+        <Route
+          path="/signup"
+          element={
+            auth
+              ? <Navigate to="/app" replace />
+              : <PageTransition><SignUpPage /></PageTransition>
+          }
+        />
 
-      {/*
-        Authenticated — AppShell renders the sidebar + topbar shell.
-        Everything UNDER /app/* is a nested route inside AppShell's
-        own <Routes> (see AppShell.tsx) so the URL always reflects:
-          /app                                          → dashboard
-          /app/classes                                  → classroom list
-          /app/classes/:classroomId                     → classroom detail
-          /app/classes/:classroomId/assignments/:id     → assignment detail
-          /app/profile                                  → profile
-      */}
-      <Route
-        path="/app/*"
-        element={
-          auth ? <AppShell role={user.role} /> : <Navigate to="/" replace />
-        }
-      />
+        {/* App */}
+        <Route
+          path="/app/*"
+          element={
+            auth
+              ? <PageTransition><AppShell role={user.role} /></PageTransition>
+              : <Navigate to="/" replace />
+          }
+        />
 
-      {/* Fallback */}
-      <Route path="*" element={<Navigate to={auth ? "/app" : "/"} replace />} />
-    </Routes>
+        {/* Fallback */}
+        <Route
+          path="*"
+          element={<Navigate to={auth ? "/app" : "/"} replace />}
+        />
+
+      </Routes>
+    </AnimatePresence>
   );
 };
 

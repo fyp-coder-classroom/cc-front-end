@@ -100,7 +100,7 @@ const SignUpPage: FC = () => {
               onClick={() => setRole(t)}
               className={`relative z-10 flex-1 py-2 text-sm font-medium capitalize rounded-lg
                          transition-colors duration-300
-                         ${role === t ? "text-text" : "text-text-muted hover:text-gray-800"}`}
+                         ${role === t ? "text-white" : "text-text-muted hover:text-gray-800"}`}
             >
               {t.charAt(0).toUpperCase() + t.slice(1)}
             </button>
@@ -185,7 +185,7 @@ const SignUpPage: FC = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-black text-text py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2
+            className="w-full bg-black text-white py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2
                        hover:bg-surface-raised transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isLoading ? (

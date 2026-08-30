@@ -18,3 +18,10 @@
     transform: translateY(0);
   }
 }
+* {
+  scroll-behavior: smooth;
+}
+
+html {
+  scroll-behavior: smooth;
+}

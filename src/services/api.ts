@@ -14,7 +14,7 @@ export const STORAGE_KEYS = {
 
 //  Axios instance 
 const API: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1",
   headers: { "Content-Type": "application/json" },
   timeout: 10_000,
 });
@@ -112,7 +112,7 @@ API.interceptors.response.use(
 
     const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
 
-    // No refresh token — hard logout
+    // No refresh token - hard logout
     if (!refreshToken) {
       clearAuthStorage();
       window.location.href = "/";

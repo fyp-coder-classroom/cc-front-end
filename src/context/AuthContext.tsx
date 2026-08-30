@@ -17,12 +17,12 @@ import { loginAPI, registerAPI, logoutAPI } from "../services/authService";
 import { clearAuthStorage, STORAGE_KEYS } from "../services/api";
 
 interface AuthContextValue {
-  user:      User | null;
-  token:     string | null;
+  user: User | null;
+  token: string | null;
   isLoading: boolean;
-  login:     (credentials: LoginCredentials)    => Promise<void>;
-  register:  (credentials: RegisterCredentials) => Promise<void>;
-  logout:    () => Promise<void>;
+  login: (credentials: LoginCredentials) => Promise<void>;
+  register: (credentials: RegisterCredentials) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -32,15 +32,15 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
-  const [user,      setUser]      = useState<User | null>(null);
-  const [token,     setToken]     = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Rehydrate on app boot
   useEffect(() => {
     try {
       const storedToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-      const storedUser  = localStorage.getItem(STORAGE_KEYS.USER);
+      const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
       if (storedToken && storedUser) {
         setToken(storedToken);
         setUser(JSON.parse(storedUser) as User);
@@ -54,7 +54,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
 
   const persistAuth = useCallback(
     (authUser: User, accessToken: string, refreshToken: string) => {
-      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN,  accessToken);
+      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
       localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
       localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(authUser));
       setToken(accessToken);
@@ -80,22 +80,26 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const register = useCallback(
     async (credentials: RegisterCredentials) => {
       await registerAPI(credentials);
-      // NO persistAuth — by design
+      // NO persistAuth - by design
     },
     [],
   );
 
   // Logout
-  const logout = useCallback(async () => {
+    const logout = useCallback(async () => {
     const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
     try {
       if (refreshToken) await logoutAPI(refreshToken);
-    } catch {
-      // ignore
-    } finally {
-      clearAuthStorage();
-      setToken(null);
-      setUser(null);
+    } catch { 
+      //ignore 
+      }
+    finally {
+      // Thodi delay de ke smooth feel aaye
+      setTimeout(() => {
+        clearAuthStorage();
+        setToken(null);
+        setUser(null);
+      }, 150);
     }
   }, []);
 
