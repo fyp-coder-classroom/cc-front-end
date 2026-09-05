@@ -109,6 +109,7 @@ const StudentView: FC<{
         });
 
         localStorage.removeItem(`code_draft_${assignmentId}`);
+        localStorage.removeItem(`code_language_${assignmentId}`);
       } catch {
         // submitError is handled by useMySubmission
       }
@@ -505,7 +506,7 @@ const TeacherSubmissionsView: FC<{
             )}
         </div>
 
-          {/* GRADE MODAL */}
+        {/* GRADE MODAL */}
         <GradeModal
           isOpen={!!gradeTarget}
           submission={gradeTarget}
@@ -519,7 +520,7 @@ const TeacherSubmissionsView: FC<{
     );
   };
 
-  //  MAIN ASSIGNMENT DETAIL
+//  MAIN ASSIGNMENT DETAIL
 const AssignmentDetail: FC<Props> = ({ role }) => {
   const {
     classroomId,
@@ -561,17 +562,36 @@ const AssignmentDetail: FC<Props> = ({ role }) => {
   const [code, setCode] =
     useState(STARTER_CODE.python);
 
-    //  RESTORE SAVED CODE
+  //  RESTORE SAVED CODE
 
+  // useEffect(() => {
+  //   if (!assignmentId) return;
+
+  //   const saved = localStorage.getItem(
+  //     `code_draft_${assignmentId}`
+  //   );
+
+  //   if (saved) {
+  //     setCode(saved);
+  //   }
+  // }, [assignmentId]);
   useEffect(() => {
     if (!assignmentId) return;
 
-    const saved = localStorage.getItem(
+    const savedCode = localStorage.getItem(
       `code_draft_${assignmentId}`
     );
 
-    if (saved) {
-      setCode(saved);
+    const savedLanguage = localStorage.getItem(
+      `code_language_${assignmentId}`
+    ) as SupportedLanguage | null;
+
+    if (savedLanguage) {
+      setLanguage(savedLanguage);
+    }
+
+    if (savedCode) {
+      setCode(savedCode);
     }
   }, [assignmentId]);
 
@@ -583,7 +603,12 @@ const AssignmentDetail: FC<Props> = ({ role }) => {
       `code_draft_${assignmentId}`,
       code
     );
-  }, [code, assignmentId]);
+
+    localStorage.setItem(
+      `code_language_${assignmentId}`,
+      language
+    );
+  }, [code, language, assignmentId]);
 
   //  FETCH SUPPORTED LANGUAGES
   useEffect(() => {
@@ -597,22 +622,28 @@ const AssignmentDetail: FC<Props> = ({ role }) => {
           await getSupportedLanguagesAPI();
 
         setLanguages(data);
+        const savedLanguage = localStorage.getItem(
+          `code_language_${assignmentId}`
+        ) as SupportedLanguage | null;
 
-        if (
-          data.length > 0 &&
-          !data.some(
-            (l) => l.key === language
-          )
-        ) {
-          setLanguage(data[0].key);
+        const selectedLanguage =
+          savedLanguage &&
+            data.some((l) => l.key === savedLanguage)
+            ? savedLanguage
+            : data[0]?.key;
 
-          if (
-            !localStorage.getItem(
-              `code_draft_${assignmentId}`
-            )
-          ) {
+        if (selectedLanguage) {
+          setLanguage(selectedLanguage);
+
+          const savedCode = localStorage.getItem(
+            `code_draft_${assignmentId}`
+          );
+
+          if (savedCode) {
+            setCode(savedCode);
+          } else {
             setCode(
-              STARTER_CODE[data[0].key] ?? ""
+              STARTER_CODE[selectedLanguage] ?? ""
             );
           }
         }
@@ -642,20 +673,33 @@ const AssignmentDetail: FC<Props> = ({ role }) => {
   }, [role]);
 
   //  LANGUAGE CHANGE
-
   const handleLanguageChange = (
     lang: SupportedLanguage
   ) => {
-    setLanguage(lang);
+    if (!assignmentId) return;
 
-    const saved = localStorage.getItem(
+    // Previous language code completely delete
+    localStorage.removeItem(
       `code_draft_${assignmentId}`
     );
 
-    setCode(
-      saved ??
-      STARTER_CODE[lang] ??
-      ""
+    // New language set karo
+    setLanguage(lang);
+
+    // New language ka fresh starter code
+    const starterCode = STARTER_CODE[lang] ?? "";
+
+    setCode(starterCode);
+
+    // New language
+    localStorage.setItem(
+      `code_language_${assignmentId}`,
+      lang
+    );
+
+    localStorage.setItem(
+      `code_draft_${assignmentId}`,
+      starterCode
     );
   };
 
@@ -879,7 +923,7 @@ const AssignmentDetail: FC<Props> = ({ role }) => {
         </>
       )}
 
-          {/* EDIT MODAL */}
+      {/* EDIT MODAL */}
       {role === "teacher" && (
         <EditAssignmentModal
           isOpen={showEditModal}
