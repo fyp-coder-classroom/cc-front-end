@@ -3,8 +3,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import type { Classroom, ClassroomMember } from "../../types/classroom";
 import type { Assignment } from "../../types/assignment";
 import type { ClassroomStats, MyStats } from "../../types/stats";
+import type { Submission } from "../../types/submission";
 import { getClassroomByIdAPI, removeStudentFromClassroomAPI } from "../../services/classroomService";
 import { getClassroomStatsAPI, getMyStatsAPI, recomputeClassroomStatsAPI } from "../../services/statsService";
+import { getMySubmissionAPI } from "../../services/submissionService";
 import { useAssignments } from "../../hooks/useAssignments";
 import AssignmentCard from "../../components/assignment/AssignmentCard";
 import CreateAssignmentModal from "../../components/assignment/CreateAssignmentModal";
@@ -16,12 +18,11 @@ import { PlusIcon } from "../../components/ui/Icons";
 import * as XLSX from "xlsx";
 
 interface Props { role: "teacher" | "student"; }
+
 type TeacherTab = "assignments" | "students" | "analytics";
 
-//  localStorage helpers 
 const TAB_KEY = (id: string) => `classroom_tab_${id}`;
 
-//  PDF helper 
 const downloadPDF = async (title: string, headers: string[], rows: (string | number)[][]) => {
   const { jsPDF } = await import("jspdf");
   const autoTable = (await import("jspdf-autotable")).default;
@@ -38,7 +39,6 @@ const downloadPDF = async (title: string, headers: string[], rows: (string | num
   doc.save(`${title}.pdf`);
 };
 
-// XLSX helper 
 const downloadXLSX = (title: string, headers: string[], rows: (string | number)[][]) => {
   const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
   const colWidths = headers.map((_, i) => ({
@@ -83,6 +83,9 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
   const [statsLoading, setStatsLoading] = useState(false);
   const [statsError, setStatsError] = useState("");
 
+  // Submission map — student only (assignmentId → Submission | null)
+  const [submissionMap, setSubmissionMap] = useState<Record<string, Submission | null>>({});
+
   const {
     assignments, isLoading: assignmentsLoading, error: assignmentsError,
     createAssignment, deleteAssignment,
@@ -109,20 +112,38 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
     fetch();
   }, [classroomId]);
 
+  // Fetch submission status for each assignment — student only
+  // This powers the "Submitted" / "Graded" badge on AssignmentCard
+  useEffect(() => {
+    if (role !== "student" || assignments.length === 0) return;
+    const fetchSubmissions = async () => {
+      const entries = await Promise.all(
+        assignments.map(async (a) => {
+          try {
+            const sub = await getMySubmissionAPI(a.id);
+            return [a.id, sub] as [string, Submission | null];
+          } catch {
+            return [a.id, null] as [string, null];
+          }
+        })
+      );
+      setSubmissionMap(Object.fromEntries(entries));
+    };
+    fetchSubmissions();
+  }, [assignments, role]);
+
   // Fetch stats
   const fetchStats = useCallback(async (showLoader = true) => {
     if (!classroomId) return;
     if (showLoader) setStatsLoading(true);
     setStatsError("");
     try {
-      // Recompute karo fresh data ke liye - GET nahi, POST
       const s = await recomputeClassroomStatsAPI(classroomId);
       if (role === "teacher") {
         setClassStats(s);
       } else {
-        // Student  entry from recomputed stats
         const myEntry = s.perStudent?.find(
-          (ps: any) => ps.studentId?.toString() === user?.id
+          (ps: any) => ps.studentId?.toString()
         );
         setMyStats({
           classroomId: s.classroomId,
@@ -141,8 +162,7 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
           computedAt: s.computedAt,
         });
       }
-    } catch (err: any) {
-      // Fallback to GET if recompute fails
+    } catch {
       try {
         if (role === "teacher") {
           const s = await getClassroomStatsAPI(classroomId);
@@ -159,12 +179,11 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
 
   useEffect(() => { fetchStats(); }, [fetchStats]);
 
-  
+  // Auto-refresh stats every 5s (GET only — no recompute)
   useEffect(() => {
     const interval = setInterval(async () => {
       if (!classroomId) return;
       try {
-        // GET only - no recompute, fast
         if (role === "teacher") {
           const s = await getClassroomStatsAPI(classroomId);
           setClassStats(s);
@@ -190,11 +209,12 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
     setRemoveError("");
     try {
       await removeStudentFromClassroomAPI(classroomId, student.id);
-      setClassroom((prev) => prev
-        ? { ...prev, students: (prev.students as ClassroomMember[]).filter((s) => s.id !== student.id) }
-        : prev);
+      setClassroom((prev) =>
+        prev
+          ? { ...prev, students: (prev.students as ClassroomMember[]).filter((s) => s.id !== student.id) }
+          : prev
+      );
       setConfirmRemove(null);
-      // Refresh stats after remove
       fetchStats();
     } catch (err: any) {
       setRemoveError(err?.response?.data?.message ?? "Failed to remove student.");
@@ -216,17 +236,14 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
     finally { setActionLoading(false); }
   };
 
-  //  Teacher Download 
+  // Download helpers
   const handleTeacherOverviewDownload = async (format: "xlsx" | "pdf") => {
     if (!classStats || !classroom) return;
     const students = (classroom.students as ClassroomMember[]) ?? [];
-
     const headers = ["Rank", "Name", "Email", "Submitted", "Avg Score (%)", "Not Submitted", "Graded", "Class Rank"];
     const rows = classStats.perStudent
       .map((ps) => {
-        const info = students.find(
-          (s) => s.id === ps.studentId || (s as any)._id === ps.studentId
-        );
+        const info = students.find((s) => s.id === ps.studentId || (s as any)._id === ps.studentId);
         const notSub = classStats.totalAssignments - ps.submissionsMade;
         return {
           rank: 0,
@@ -239,13 +256,8 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
           classRank: ps.classRank?.replace("_", " ") ?? "--",
         };
       })
-      .sort((a, b) => {
-        const aS = Number(a.avgScore) || -1;
-        const bS = Number(b.avgScore) || -1;
-        return bS - aS;
-      })
+      .sort((a, b) => (Number(b.avgScore) || -1) - (Number(a.avgScore) || -1))
       .map((r, i) => [i + 1, r.name, r.email, r.submitted, r.avgScore, r.notSubmitted, r.graded, r.classRank]);
-
     const title = `${classroom.name} - Analytics Overview`;
     if (format === "xlsx") downloadXLSX(title, headers, rows as (string | number)[][]);
     else await downloadPDF(title, headers, rows as (string | number)[][]);
@@ -254,7 +266,6 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
   const handleStudentBreakdownDownload = async (format: "xlsx" | "pdf") => {
     if (!classStats || !classroom) return;
     const students = (classroom.students as ClassroomMember[]) ?? [];
-
     const headers = ["Rank", "Name", "Email", "Submitted", "Avg Score (%)", "Not Submitted", "Graded", "Class Rank"];
     const rows = [...classStats.perStudent]
       .sort((a, b) => (b.averageScore ?? -1) - (a.averageScore ?? -1))
@@ -272,17 +283,14 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
           ps.classRank?.replace("_", " ") ?? "--",
         ];
       });
-
     const title = `${classroom.name} - Student Breakdown`;
     if (format === "xlsx") downloadXLSX(title, headers, rows as (string | number)[][]);
     else await downloadPDF(title, headers, rows as (string | number)[][]);
   };
 
-  //  Student Download 
   const handleStudentDownload = async (format: "xlsx" | "pdf") => {
     if (!myStats || !classroom) return;
     const notSub = myStats.myTotalAssignments - myStats.mySubmissionsMade;
-
     const headers = ["Metric", "Value"];
     const rows: (string | number)[][] = [
       ["Classroom", classroom.name],
@@ -294,26 +302,35 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
       ["Class Average", myStats.classAverageScore != null ? `${myStats.classAverageScore.toFixed(1)}%` : "--"],
       ["Stats As Of", new Date(myStats.computedAt).toLocaleString("en-US")],
     ];
-
     const title = `My Stats - ${classroom.name}`;
     if (format === "xlsx") downloadXLSX(title, headers, rows);
     else await downloadPDF(title, headers, rows);
   };
 
+  //  Loading 
   if (isLoading) return (
     <div>
-      <button onClick={onBack} className="flex items-center gap-2 text-text-secondary hover:text-text text-sm mb-6 transition-colors">← Back to Classes</button>
+      <button onClick={onBack} className="flex items-center gap-2 text-text-secondary hover:text-text text-sm mb-6 transition-colors">
+        ← Back to Classes
+      </button>
       <div className="space-y-4 animate-pulse">
         <div className="h-8 bg-surface-raised rounded w-1/3" />
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">{[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-surface-raised rounded-xl" />)}</div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-surface-raised rounded-xl" />)}
+        </div>
       </div>
     </div>
   );
 
+  //  Error 
   if (error || !classroom) return (
     <div>
-      <button onClick={onBack} className="flex items-center gap-2 text-text-secondary hover:text-text text-sm mb-6 transition-colors">← Back to Classes</button>
-      <div className="bg-red-900/30 border border-red-700 rounded-xl p-6 text-center"><p className="text-red-400">{error || "Classroom not found."}</p></div>
+      <button onClick={onBack} className="flex items-center gap-2 text-text-secondary hover:text-text text-sm mb-6 transition-colors">
+        ← Back to Classes
+      </button>
+      <div className="bg-red-900/30 border border-red-700 rounded-xl p-6 text-center">
+        <p className="text-red-400">{error || "Classroom not found."}</p>
+      </div>
     </div>
   );
 
@@ -329,7 +346,40 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
 
   return (
     <div className="space-y-6">
-      <button onClick={onBack} className="flex items-center gap-2 text-text-secondary hover:text-text text-sm transition-colors">← Back to Classes</button>
+      {/* Back + Refresh */}
+      <div className="flex items-center justify-between">
+        <button onClick={onBack} className="flex items-center gap-2 text-text-secondary hover:text-text text-sm transition-colors">
+          ← Back to Classes
+        </button>
+        {/* <button
+          onClick={() => fetchStats(true)}
+          className="flex items-center gap-2 text-xs border border-border-strong text-text-secondary hover:text-text hover:border-gray-500 px-3 py-1.5 rounded-lg transition-colors"
+        >
+          ↻ Refresh Stats
+        </button> */}
+        <button
+          onClick={async () => {
+            setStatsLoading(true);
+            setStatsError("");
+            try {
+              if (role === "teacher") {
+                const s = await recomputeClassroomStatsAPI(classroomId ?? "");
+                setClassStats(s);
+              } else {
+                const s = await getMyStatsAPI(classroomId ?? "");
+                setMyStats(s);
+              }
+            } catch (err: any) {
+              setStatsError(err?.response?.data?.message ?? "Failed to refresh.");
+            } finally {
+              setStatsLoading(false);
+            }
+          }}
+          className="flex items-center gap-2 text-xs border border-border-strong text-text-secondary hover:text-text hover:border-gray-500 px-3 py-1.5 rounded-lg transition-colors"
+        >
+          ↻ Refresh Stats
+        </button>
+      </div>
 
       {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-4">
@@ -337,7 +387,10 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
           <h1 className="text-2xl font-black text-text">{classroom.name}</h1>
           <p className="text-text-secondary text-sm mt-1">{classroom.description || "No description provided."}</p>
         </div>
-        <button onClick={handleCopyCode} className="flex items-center gap-2 bg-surface border border-border-strong rounded-xl px-4 py-2.5 hover:border-gray-500 transition-colors group">
+        <button
+          onClick={handleCopyCode}
+          className="flex items-center gap-2 bg-surface border border-border-strong rounded-xl px-4 py-2.5 hover:border-gray-500 transition-colors group"
+        >
           <span className="text-text-secondary text-xs">Class Code</span>
           <span className="text-text font-mono font-bold text-lg tracking-widest">{classroom.classCode}</span>
           <span className="text-xs text-text-muted group-hover:text-text">{copied ? "✓ Copied!" : "Copy"}</span>
@@ -364,14 +417,20 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
         </div>
       </div>
 
-      {/* TEACHER VIEW */}
+      {/* TEACHER VIEW  */}
       {isTeacher && (
         <>
           {/* Tabs */}
           <div className="flex gap-1 bg-surface-raised p-1 rounded-xl w-fit">
             {tabs.map((t) => (
-              <button key={t.key} onClick={() => handleTabChange(t.key)}
-                className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${activeTab === t.key ? "bg-surface text-text shadow-sm" : "text-text-muted hover:text-text"}`}>
+              <button
+                key={t.key}
+                onClick={() => handleTabChange(t.key)}
+                className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${activeTab === t.key
+                    ? "bg-surface text-text shadow-sm"
+                    : "text-text-muted hover:text-text"
+                  }`}
+              >
                 {t.label}
               </button>
             ))}
@@ -382,23 +441,45 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
             <div className="bg-surface rounded-xl border border-border p-5">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-bold text-text">Assignments ({assignments.length})</h3>
-                <button onClick={() => setShowCreateModal(true)} className="flex items-center gap-2 bg-primary text-primary-foreground px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-90 transition-colors">
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="flex items-center gap-2 bg-primary text-primary-foreground px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-90 transition-colors"
+                >
                   <PlusIcon /> New Assignment
                 </button>
               </div>
-              {assignmentsLoading && <div className="space-y-3">{[1, 2].map(i => <div key={i} className="h-32 bg-surface-raised rounded-xl animate-pulse" />)}</div>}
-              {!assignmentsLoading && assignmentsError && <div className="bg-red-900/30 border border-red-700 rounded-xl p-4 text-center"><p className="text-red-400 text-sm">{assignmentsError}</p></div>}
+              {assignmentsLoading && (
+                <div className="space-y-3">
+                  {[1, 2].map(i => <div key={i} className="h-32 bg-surface-raised rounded-xl animate-pulse" />)}
+                </div>
+              )}
+              {!assignmentsLoading && assignmentsError && (
+                <div className="bg-red-900/30 border border-red-700 rounded-xl p-4 text-center">
+                  <p className="text-red-400 text-sm">{assignmentsError}</p>
+                </div>
+              )}
               {!assignmentsLoading && !assignmentsError && assignments.length === 0 && (
                 <div className="text-center py-10 border border-dashed border-border-strong rounded-xl">
                   <p className="text-text-muted text-sm mb-4">No assignments yet.</p>
-                  <button onClick={() => setShowCreateModal(true)} className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-xs font-bold hover:opacity-90 mx-auto">
+                  <button
+                    onClick={() => setShowCreateModal(true)}
+                    className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-xs font-bold hover:opacity-90 mx-auto"
+                  >
                     <PlusIcon /> Create Assignment
                   </button>
                 </div>
               )}
               {!assignmentsLoading && !assignmentsError && assignments.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {assignments.map((a) => <AssignmentCard key={a.id} assignment={a} role="teacher" onView={onViewAssignment} onDelete={(a) => setDeleteTarget(a)} />)}
+                  {assignments.map((a) => (
+                    <AssignmentCard
+                      key={a.id}
+                      assignment={a}
+                      role="teacher"
+                      onView={onViewAssignment}
+                      onDelete={(a) => setDeleteTarget(a)}
+                    />
+                  ))}
                 </div>
               )}
             </div>
@@ -408,18 +489,26 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
           {activeTab === "students" && (
             <div className="bg-surface rounded-xl border border-border p-5">
               <h3 className="text-sm font-bold text-text mb-4">Enrolled Students ({students.length})</h3>
-              {removeError && <div className="bg-red-900/30 border border-red-700 rounded-lg px-4 py-2.5 mb-4"><p className="text-red-400 text-sm">{removeError}</p></div>}
+              {removeError && (
+                <div className="bg-red-900/30 border border-red-700 rounded-lg px-4 py-2.5 mb-4">
+                  <p className="text-red-400 text-sm">{removeError}</p>
+                </div>
+              )}
               {students.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-text-muted text-sm">No students enrolled yet.</p>
-                  <p className="text-text-faint text-xs mt-1">Share code <span className="font-mono text-text-secondary">{classroom.classCode}</span></p>
+                  <p className="text-text-faint text-xs mt-1">
+                    Share code <span className="font-mono text-text-secondary">{classroom.classCode}</span>
+                  </p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="border-b border-border">
-                        {["#", "Name", "Email", "Action"].map(h => <th key={h} className="text-left text-text-muted pb-2 pr-4 font-medium whitespace-nowrap">{h}</th>)}
+                        {["#", "Name", "Email", "Action"].map(h => (
+                          <th key={h} className="text-left text-text-muted pb-2 pr-4 font-medium whitespace-nowrap">{h}</th>
+                        ))}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
@@ -431,16 +520,21 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
                               <div className="w-7 h-7 rounded-full bg-surface-raised flex items-center justify-center text-text text-xs font-bold flex-shrink-0">
                                 {student.name?.charAt(0).toUpperCase() ?? "?"}
                               </div>
-                              <button onClick={() => navigate(`/app/classes/${classroomId}/students/${student.id}/progress`)}
-                                className="text-text font-medium hover:text-primary transition-colors">
+                              <button
+                                onClick={() => navigate(`/app/classes/${classroomId}/students/${student.id}/progress`)}
+                                className="text-text font-medium hover:text-primary transition-colors"
+                              >
                                 {student.name ?? "--"}
                               </button>
                             </div>
                           </td>
                           <td className="py-3 pr-4 text-text-secondary">{student.email ?? "--"}</td>
                           <td className="py-3">
-                            <button onClick={() => setConfirmRemove(student)} disabled={removingId === student.id}
-                              className="text-xs text-red-500 hover:text-red-400 border border-transparent hover:border-red-800 px-2 py-1 rounded transition-all disabled:opacity-50">
+                            <button
+                              onClick={() => setConfirmRemove(student)}
+                              disabled={removingId === student.id}
+                              className="text-xs text-red-500 hover:text-red-400 border border-transparent hover:border-red-800 px-2 py-1 rounded transition-all disabled:opacity-50"
+                            >
                               {removingId === student.id ? "Removing..." : "Remove"}
                             </button>
                           </td>
@@ -458,12 +552,16 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
             <div className="space-y-4">
               {statsLoading && (
                 <div className="space-y-4 animate-pulse">
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">{[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-surface-raised rounded-xl" />)}</div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-surface-raised rounded-xl" />)}
+                  </div>
                   <div className="h-48 bg-surface-raised rounded-xl" />
                 </div>
               )}
               {!statsLoading && statsError && (
-                <div className="bg-red-900/30 border border-red-700 rounded-xl p-6 text-center"><p className="text-red-400 text-sm">{statsError}</p></div>
+                <div className="bg-red-900/30 border border-red-700 rounded-xl p-6 text-center">
+                  <p className="text-red-400 text-sm">{statsError}</p>
+                </div>
               )}
               {!statsLoading && !statsError && !classStats && (
                 <div className="bg-surface border border-dashed border-border-strong rounded-xl p-8 text-center">
@@ -474,8 +572,6 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
                 <>
                   <ClassOverviewCards
                     stats={classStats}
-                    // isRefreshing={isRefreshing}
-                    // onRefresh={handleRefreshStats}
                     onDownload={handleTeacherOverviewDownload}
                   />
                   <StudentBreakdownTable
@@ -492,36 +588,22 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
         </>
       )}
 
-      {/* STUDENT VIEW */}
+      {/*  STUDENT VIEW  */}
       {!isTeacher && (
         <>
-          <div className="bg-surface rounded-xl border border-border p-5">
-            <h3 className="text-sm font-bold text-text mb-4">Class Information</h3>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-center justify-between py-2 border-b border-border">
-                <span className="text-text-secondary">Teacher</span>
-                <span className="text-text font-medium">{teacherName}</span>
-              </div>
-              <div className="flex items-center justify-between py-2 border-b border-border">
-                <span className="text-text-secondary">Total Students</span>
-                <span className="text-text font-medium">{students.length}</span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-text-secondary">Class Code</span>
-                <span className="text-text font-mono font-bold">{classroom.classCode}</span>
-              </div>
-            </div>
-          </div>
-
           {/* My Stats Panel */}
           {statsLoading && (
             <div className="bg-surface rounded-xl border border-border p-5 animate-pulse">
               <div className="h-4 bg-surface-raised rounded w-1/3 mb-4" />
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">{[1, 2, 3, 4].map(i => <div key={i} className="h-20 bg-surface-raised rounded-xl" />)}</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[1, 2, 3, 4].map(i => <div key={i} className="h-20 bg-surface-raised rounded-xl" />)}
+              </div>
             </div>
           )}
           {!statsLoading && statsError && (
-            <div className="bg-red-900/30 border border-red-700 rounded-xl p-4 text-center"><p className="text-red-400 text-sm">{statsError}</p></div>
+            <div className="bg-red-900/30 border border-red-700 rounded-xl p-4 text-center">
+              <p className="text-red-400 text-sm">{statsError}</p>
+            </div>
           )}
           {!statsLoading && !statsError && myStats && (
             <div className="bg-surface rounded-xl border border-border p-5">
@@ -530,17 +612,41 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
             </div>
           )}
 
-          {/* Assignments */}
+          {/* Assignments — with submitted/graded badges */}
           <div className="bg-surface rounded-xl border border-border p-5">
             <h3 className="text-sm font-bold text-text mb-4">Assignments ({assignments.length})</h3>
-            {assignmentsLoading && <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="h-32 bg-surface-raised rounded-xl animate-pulse" />)}</div>}
-            {!assignmentsLoading && assignmentsError && <div className="bg-red-900/30 border border-red-700 rounded-xl p-4 text-center"><p className="text-red-400 text-sm">{assignmentsError}</p></div>}
+            {assignmentsLoading && (
+              <div className="space-y-3">
+                {[1, 2, 3].map(i => <div key={i} className="h-32 bg-surface-raised rounded-xl animate-pulse" />)}
+              </div>
+            )}
+            {!assignmentsLoading && assignmentsError && (
+              <div className="bg-red-900/30 border border-red-700 rounded-xl p-4 text-center">
+                <p className="text-red-400 text-sm">{assignmentsError}</p>
+              </div>
+            )}
             {!assignmentsLoading && !assignmentsError && assignments.length === 0 && (
-              <div className="text-center py-10"><p className="text-text-muted text-sm">No assignments yet.</p></div>
+              <div className="text-center py-10">
+                <p className="text-text-muted text-sm">No assignments yet.</p>
+              </div>
             )}
             {!assignmentsLoading && !assignmentsError && assignments.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {assignments.map((a) => <AssignmentCard key={a.id} assignment={a} role="student" onView={onViewAssignment} />)}
+                {assignments.map((a) => {
+                  const sub = submissionMap[a.id];
+                  const submitted = !!sub;
+                  const isGraded = sub?.marks !== null && sub?.marks !== undefined;
+                  return (
+                    <AssignmentCard
+                      key={a.id}
+                      assignment={a}
+                      role="student"
+                      onView={onViewAssignment}
+                      submitted={submitted}
+                      isGraded={isGraded}
+                    />
+                  );
+                })}
               </div>
             )}
           </div>
@@ -548,23 +654,48 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
       )}
 
       {/* Modals */}
-      <CreateAssignmentModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} onCreate={handleCreate} isLoading={actionLoading} />
-      <DeleteAssignmentModal isOpen={!!deleteTarget} assignmentTitle={deleteTarget?.title ?? ""} isLoading={actionLoading} onConfirm={handleDeleteConfirm} onCancel={() => setDeleteTarget(null)} />
+      <CreateAssignmentModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreate={handleCreate}
+        isLoading={actionLoading}
+      />
+      <DeleteAssignmentModal
+        isOpen={!!deleteTarget}
+        assignmentTitle={deleteTarget?.title ?? ""}
+        isLoading={actionLoading}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteTarget(null)}
+      />
 
+      {/* Remove Student Confirm Modal */}
       {confirmRemove && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
           <div className="bg-surface border border-border-strong rounded-2xl w-full max-w-sm p-6">
             <h2 className="text-text font-black text-lg mb-2">Remove Student</h2>
-            <p className="text-text-secondary text-sm mb-2">Remove <span className="text-text font-semibold">"{confirmRemove.name}"</span>?</p>
-            <p className="text-yellow-500 text-xs mb-6">⚠ Student will need to rejoin using the class code.</p>
+            <p className="text-text-secondary text-sm mb-2">
+              Remove <span className="text-text font-semibold">"{confirmRemove.name}"</span>?
+            </p>
+            <p className="text-yellow-500 text-xs mb-6">
+              ⚠ Student will need to rejoin using the class code.
+            </p>
             <div className="flex items-center gap-3">
-              <button onClick={() => { setConfirmRemove(null); setRemoveError(""); }} disabled={removingId !== null}
-                className="flex-1 border border-border-strong text-text-secondary py-2.5 rounded-xl text-sm hover:border-gray-500 hover:text-text transition-colors disabled:opacity-50">
+              <button
+                onClick={() => { setConfirmRemove(null); setRemoveError(""); }}
+                disabled={removingId !== null}
+                className="flex-1 border border-border-strong text-text-secondary py-2.5 rounded-xl text-sm hover:border-gray-500 hover:text-text transition-colors disabled:opacity-50"
+              >
                 Cancel
               </button>
-              <button onClick={() => handleRemoveStudent(confirmRemove)} disabled={removingId !== null}
-                className="flex-1 bg-red-600 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-red-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
-                {removingId ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Removing...</> : "Yes, Remove"}
+              <button
+                onClick={() => handleRemoveStudent(confirmRemove)}
+                disabled={removingId !== null}
+                className="flex-1 bg-red-600 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-red-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+              >
+                {removingId
+                  ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Removing...</>
+                  : "Yes, Remove"
+                }
               </button>
             </div>
           </div>
