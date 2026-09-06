@@ -32,6 +32,7 @@ const ClassOverviewCards: FC<Props> = ({ stats, onDownload }) => {
 
   const cards = [
     { label: "Class Avg Score",    value: fmt(stats.classAverageScore),   color: "text-text"       },
+      { label: "On-Time Submission",       value: fmt(stats.onTimeSubmissionRate), color: "text-green-400"  },
     { label: "Participation Rate", value: fmt(stats.participationRate),    color: "text-blue-400"   },
     { label: "Grading Backlog",    value: String(stats.gradingBacklog),    color: stats.gradingBacklog > 0 ? "text-yellow-400" : "text-text" },
   ];

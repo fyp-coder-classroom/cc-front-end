@@ -57,7 +57,6 @@ const StudentStatsPanel: FC<Props> = ({ stats, onDownload }) => {
     },
     { label: "Submitted",     value: `${stats.mySubmissionsMade}/${stats.myTotalAssignments}`, color: "text-text" },
     { label: "Not Submitted", value: String(notSubmitted), color: notSubmitted > 0 ? "text-red-400" : "text-green-400" },
-    { label: "Graded",        value: `${stats.myGradedCount ?? 0}/${stats.myTotalAssignments}`, color: "text-text-secondary" },
   ];
 
   return (

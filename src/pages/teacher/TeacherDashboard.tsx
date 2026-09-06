@@ -166,9 +166,11 @@ const TeacherDashboard: FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6">
 
         {/* Submission Activity Bar Chart */}
-        <div className="lg:col-span-3 bg-surface rounded-xl border border-border p-5">
-          <h3 className="text-sm font-bold text-text mb-1">Submission Activity</h3>
-          <p className="text-xs text-text-muted mb-5">Last 7 days · All assignments</p>
+        <div className="lg:col-span-3 bg-surface rounded-xl border border-border p-5 flex flex-col">
+          <div>
+            <h3 className="text-sm font-bold text-text mb-1">Submission Activity</h3>
+            <p className="text-xs text-text-muted mb-0">Last 7 days · All assignments</p>
+          </div>
 
           {isLoading ? (
             <div className="h-32 bg-surface-raised rounded animate-pulse" />
@@ -177,32 +179,32 @@ const TeacherDashboard: FC = () => {
               <p className="text-text-faint text-xs">No submissions yet</p>
             </div>
           ) : (
-            <div className="flex items-end gap-2" style={{ height: "120px" }}>             
-             {activityBars.map((count, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                {/* Count label above bar */}
-                <span
-                  className="text-[10px] font-bold tabular-nums"
-                  style={{ color: count > 0 ? "#eab308" : "transparent" }}
-                >
-                  {count}
-                </span>
-                {/* Bar */}
-                <div className="w-full flex items-end justify-center" style={{ height: "88px" }}>
-                  <div
-                  className="w-full rounded-t-sm transition-all duration-500"
-                  style={{
-                    height: `${Math.max((count / maxBar) * 88, count > 0 ? 8 : 3)}px`,
-                    backgroundColor: count > 0 ? "#eab308" : "#374151",
-                  }}
-                />
+            <div className="flex items-end gap-2 flex-1" style={{ minHeight: "120px" }}>
+              {activityBars.map((count, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                  {/* Count label above bar */}
+                  <span
+                    className="text-[10px] font-bold tabular-nums"
+                    style={{ color: count > 0 ? "#eab308" : "transparent" }}
+                  >
+                    {count}
+                  </span>
+                  {/* Bar */}
+                  <div className="w-full flex items-end justify-center" style={{ height: "88px" }}>
+                    <div
+                      className="w-full rounded-t-sm transition-all duration-500"
+                      style={{
+                        height: `${Math.max((count / maxBar) * 88, count > 0 ? 8 : 3)}px`,
+                        backgroundColor: count > 0 ? "#eab308" : "#374151",
+                      }}
+                    />
+                  </div>
+                  {/* Day label */}
+                  <span className="text-[9px] text-text-muted whitespace-nowrap font-medium">
+                    {dayLabels[i]}
+                  </span>
                 </div>
-                {/* Day label */}
-                <span className="text-[9px] text-text-muted whitespace-nowrap font-medium">
-                  {dayLabels[i]}
-                </span>
-              </div>
-            ))}
+              ))}
             </div>
           )}
         </div>
@@ -230,7 +232,7 @@ const TeacherDashboard: FC = () => {
             </div>
           ) : (
             // No max height - card grows with content
-            <div className="space-y-1">
+            <div className="space-y-1 overflow-y-auto max-h-[240px]">
               {recentSubmissions.map((s) => {
                 const student = typeof s.studentId === "object" ? s.studentId : null;
                 const isGraded = s.marks !== null && s.marks !== undefined;

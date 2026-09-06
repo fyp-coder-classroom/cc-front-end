@@ -18,9 +18,7 @@ import { PlusIcon } from "../../components/ui/Icons";
 import * as XLSX from "xlsx";
 
 interface Props { role: "teacher" | "student"; }
-
 type TeacherTab = "assignments" | "students" | "analytics";
-
 const TAB_KEY = (id: string) => `classroom_tab_${id}`;
 
 const downloadPDF = async (title: string, headers: string[], rows: (string | number)[][]) => {
@@ -53,20 +51,18 @@ const downloadXLSX = (title: string, headers: string[], rows: (string | number)[
 const ClassroomDetail: FC<Props> = ({ role }) => {
   const { classroomId } = useParams<{ classroomId: string }>();
   const navigate = useNavigate();
-
   const onBack = () => navigate("/app/classes");
   const onViewAssignment = (a: Assignment) =>
     navigate(`/app/classes/${classroomId}/assignments/${a.id}`);
 
-  const [classroom, setClassroom] = useState<Classroom | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [copied, setCopied] = useState(false);
-  const [removingId, setRemovingId] = useState<string | null>(null);
-  const [removeError, setRemoveError] = useState("");
+  const [classroom,     setClassroom]     = useState<Classroom | null>(null);
+  const [isLoading,     setIsLoading]     = useState(true);
+  const [error,         setError]         = useState("");
+  const [copied,        setCopied]        = useState(false);
+  const [removingId,    setRemovingId]    = useState<string | null>(null);
+  const [removeError,   setRemoveError]   = useState("");
   const [confirmRemove, setConfirmRemove] = useState<ClassroomMember | null>(null);
 
-  // Persistent tab state
   const [activeTab, setActiveTab] = useState<TeacherTab>(() => {
     if (!classroomId) return "assignments";
     return (localStorage.getItem(TAB_KEY(classroomId)) as TeacherTab) ?? "assignments";
@@ -77,13 +73,10 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
     if (classroomId) localStorage.setItem(TAB_KEY(classroomId), tab);
   };
 
-  // Stats
-  const [classStats, setClassStats] = useState<ClassroomStats | null>(null);
-  const [myStats, setMyStats] = useState<MyStats | null>(null);
+  const [classStats,   setClassStats]   = useState<ClassroomStats | null>(null);
+  const [myStats,      setMyStats]      = useState<MyStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
-  const [statsError, setStatsError] = useState("");
-
-  // Submission map — student only (assignmentId → Submission | null)
+  const [statsError,   setStatsError]   = useState("");
   const [submissionMap, setSubmissionMap] = useState<Record<string, Submission | null>>({});
 
   const {
@@ -92,8 +85,8 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
   } = useAssignments(classroomId ?? "");
 
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<Assignment | null>(null);
-  const [actionLoading, setActionLoading] = useState(false);
+  const [deleteTarget,    setDeleteTarget]    = useState<Assignment | null>(null);
+  const [actionLoading,   setActionLoading]   = useState(false);
 
   // Fetch classroom
   useEffect(() => {
@@ -112,8 +105,7 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
     fetch();
   }, [classroomId]);
 
-  // Fetch submission status for each assignment — student only
-  // This powers the "Submitted" / "Graded" badge on AssignmentCard
+  // Fetch submission status - student only
   useEffect(() => {
     if (role !== "student" || assignments.length === 0) return;
     const fetchSubmissions = async () => {
@@ -142,24 +134,22 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
       if (role === "teacher") {
         setClassStats(s);
       } else {
-        const myEntry = s.perStudent?.find(
-          (ps: any) => ps.studentId?.toString()
-        );
+        const myEntry = s.perStudent?.find((ps: any) => ps.studentId?.toString());
         setMyStats({
-          classroomId: s.classroomId,
-          studentId: myEntry?.studentId ?? "",
-          mySubmissionsMade: myEntry?.submissionsMade ?? 0,
-          myTotalAssignments: s.totalAssignments,
-          myAverageScore: myEntry?.averageScore ?? null,
-          myPerformanceTrend: myEntry?.performanceTrend ?? [],
-          myNotSubmitted: s.totalAssignments - (myEntry?.submissionsMade ?? 0),
+          classroomId:            s.classroomId,
+          studentId:              myEntry?.studentId ?? "",
+          mySubmissionsMade:      myEntry?.submissionsMade ?? 0,
+          myTotalAssignments:     s.totalAssignments,
+          myAverageScore:         myEntry?.averageScore ?? null,
+          myPerformanceTrend:     myEntry?.performanceTrend ?? [],
+          myNotSubmitted:         s.totalAssignments - (myEntry?.submissionsMade ?? 0),
           myMissingAssignmentIds: myEntry?.missingAssignmentIds ?? [],
-          myGradedCount: myEntry?.gradedCount ?? 0,
-          myClassRank: myEntry?.classRank ?? null,
-          myRankPosition: null,
-          totalStudents: s.perStudent?.length ?? 0,
-          classAverageScore: s.classAverageScore,
-          computedAt: s.computedAt,
+          myGradedCount:          myEntry?.gradedCount ?? 0,
+          myClassRank:            myEntry?.classRank ?? null,
+          myRankPosition:         null,
+          totalStudents:          s.perStudent?.length ?? 0,
+          classAverageScore:      s.classAverageScore,
+          computedAt:             s.computedAt,
         });
       }
     } catch {
@@ -179,7 +169,7 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
 
   useEffect(() => { fetchStats(); }, [fetchStats]);
 
-  // Auto-refresh stats every 5s (GET only — no recompute)
+  // Auto-refresh every 3s
   useEffect(() => {
     const interval = setInterval(async () => {
       if (!classroomId) return;
@@ -192,9 +182,28 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
           setMyStats(s);
         }
       } catch { }
-    }, 5000);
+    }, 3000);
     return () => clearInterval(interval);
   }, [classroomId, role]);
+
+  // Refresh button handler - works for both roles
+  const handleRefreshStats = async () => {
+    setStatsLoading(true);
+    setStatsError("");
+    try {
+      if (role === "teacher") {
+        const s = await recomputeClassroomStatsAPI(classroomId ?? "");
+        setClassStats(s);
+      } else {
+        const s = await getMyStatsAPI(classroomId ?? "");
+        setMyStats(s);
+      }
+    } catch (err: any) {
+      setStatsError(err?.response?.data?.message ?? "Failed to refresh.");
+    } finally {
+      setStatsLoading(false);
+    }
+  };
 
   const handleCopyCode = () => {
     if (!classroom) return;
@@ -210,9 +219,7 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
     try {
       await removeStudentFromClassroomAPI(classroomId, student.id);
       setClassroom((prev) =>
-        prev
-          ? { ...prev, students: (prev.students as ClassroomMember[]).filter((s) => s.id !== student.id) }
-          : prev
+        prev ? { ...prev, students: (prev.students as ClassroomMember[]).filter((s) => s.id !== student.id) } : prev
       );
       setConfirmRemove(null);
       fetchStats();
@@ -236,28 +243,26 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
     finally { setActionLoading(false); }
   };
 
-  // Download helpers
   const handleTeacherOverviewDownload = async (format: "xlsx" | "pdf") => {
     if (!classStats || !classroom) return;
     const students = (classroom.students as ClassroomMember[]) ?? [];
-    const headers = ["Rank", "Name", "Email", "Submitted", "Avg Score (%)", "Not Submitted", "Graded", "Class Rank"];
+    const headers = ["Rank", "Name", "Email", "Submitted", "Avg Score (%)", "Not Submitted", "Class Rank"];
     const rows = classStats.perStudent
       .map((ps) => {
         const info = students.find((s) => s.id === ps.studentId || (s as any)._id === ps.studentId);
         const notSub = classStats.totalAssignments - ps.submissionsMade;
         return {
           rank: 0,
-          name: info?.name ?? "--",
-          email: info?.email ?? "--",
-          submitted: `${ps.submissionsMade}/${classStats.totalAssignments}`,
-          avgScore: ps.averageScore != null ? ps.averageScore.toFixed(1) : "--",
+          name:         info?.name  ?? "--",
+          email:        info?.email ?? "--",
+          submitted:    `${ps.submissionsMade}/${classStats.totalAssignments}`,
+          avgScore:     ps.averageScore != null ? ps.averageScore.toFixed(1) : "--",
           notSubmitted: notSub,
-          graded: `${ps.gradedCount ?? 0}/${classStats.totalAssignments}`,
-          classRank: ps.classRank?.replace("_", " ") ?? "--",
+          classRank:    ps.classRank?.replace("_", " ") ?? "--",
         };
       })
       .sort((a, b) => (Number(b.avgScore) || -1) - (Number(a.avgScore) || -1))
-      .map((r, i) => [i + 1, r.name, r.email, r.submitted, r.avgScore, r.notSubmitted, r.graded, r.classRank]);
+      .map((r, i) => [i + 1, r.name, r.email, r.submitted, r.avgScore, r.notSubmitted, r.classRank]);
     const title = `${classroom.name} - Analytics Overview`;
     if (format === "xlsx") downloadXLSX(title, headers, rows as (string | number)[][]);
     else await downloadPDF(title, headers, rows as (string | number)[][]);
@@ -266,7 +271,7 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
   const handleStudentBreakdownDownload = async (format: "xlsx" | "pdf") => {
     if (!classStats || !classroom) return;
     const students = (classroom.students as ClassroomMember[]) ?? [];
-    const headers = ["Rank", "Name", "Email", "Submitted", "Avg Score (%)", "Not Submitted", "Graded", "Class Rank"];
+    const headers = ["Rank", "Name", "Email", "Submitted", "Avg Score (%)", "Not Submitted", "Class Rank"];
     const rows = [...classStats.perStudent]
       .sort((a, b) => (b.averageScore ?? -1) - (a.averageScore ?? -1))
       .map((ps, i) => {
@@ -274,12 +279,11 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
         const notSub = classStats.totalAssignments - ps.submissionsMade;
         return [
           i + 1,
-          info?.name ?? "--",
+          info?.name  ?? "--",
           info?.email ?? "--",
           `${ps.submissionsMade}/${classStats.totalAssignments}`,
           ps.averageScore != null ? ps.averageScore.toFixed(1) : "--",
           notSub,
-          `${ps.gradedCount ?? 0}/${classStats.totalAssignments}`,
           ps.classRank?.replace("_", " ") ?? "--",
         ];
       });
@@ -293,21 +297,19 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
     const notSub = myStats.myTotalAssignments - myStats.mySubmissionsMade;
     const headers = ["Metric", "Value"];
     const rows: (string | number)[][] = [
-      ["Classroom", classroom.name],
-      ["My Avg Score", myStats.myAverageScore != null ? `${myStats.myAverageScore.toFixed(1)}%` : "--"],
-      ["Submitted", `${myStats.mySubmissionsMade}/${myStats.myTotalAssignments}`],
+      ["Classroom",     classroom.name],
+      ["My Avg Score",  myStats.myAverageScore != null ? `${myStats.myAverageScore.toFixed(1)}%` : "--"],
+      ["Submitted",     `${myStats.mySubmissionsMade}/${myStats.myTotalAssignments}`],
       ["Not Submitted", notSub],
-      ["Graded", `${myStats.myGradedCount ?? 0}/${myStats.myTotalAssignments}`],
-      ["Class Rank", myStats.myRankPosition != null ? `#${myStats.myRankPosition} of ${myStats.totalStudents}` : "--"],
+      ["Class Rank",    myStats.myRankPosition != null ? `#${myStats.myRankPosition} of ${myStats.totalStudents}` : "--"],
       ["Class Average", myStats.classAverageScore != null ? `${myStats.classAverageScore.toFixed(1)}%` : "--"],
-      ["Stats As Of", new Date(myStats.computedAt).toLocaleString("en-US")],
+      ["Stats As Of",   new Date(myStats.computedAt).toLocaleString("en-US")],
     ];
     const title = `My Stats - ${classroom.name}`;
     if (format === "xlsx") downloadXLSX(title, headers, rows);
     else await downloadPDF(title, headers, rows);
   };
 
-  //  Loading 
   if (isLoading) return (
     <div>
       <button onClick={onBack} className="flex items-center gap-2 text-text-secondary hover:text-text text-sm mb-6 transition-colors">
@@ -316,13 +318,12 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
       <div className="space-y-4 animate-pulse">
         <div className="h-8 bg-surface-raised rounded w-1/3" />
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-surface-raised rounded-xl" />)}
+          {[1,2,3,4].map(i => <div key={i} className="h-24 bg-surface-raised rounded-xl" />)}
         </div>
       </div>
     </div>
   );
 
-  //  Error 
   if (error || !classroom) return (
     <div>
       <button onClick={onBack} className="flex items-center gap-2 text-text-secondary hover:text-text text-sm mb-6 transition-colors">
@@ -334,52 +335,22 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
     </div>
   );
 
-  const isTeacher = role === "teacher";
+  const isTeacher   = role === "teacher";
   const teacherName = typeof classroom.teacherId === "object" ? classroom.teacherId.name : "Teacher";
-  const students = (classroom.students as ClassroomMember[]) ?? [];
+  const students    = (classroom.students as ClassroomMember[]) ?? [];
 
   const tabs: { key: TeacherTab; label: string }[] = [
     { key: "assignments", label: `Assignments (${assignments.length})` },
-    { key: "students", label: `Students (${students.length})` },
-    { key: "analytics", label: "📊 Analytics" },
+    { key: "students",    label: `Students (${students.length})` },
+    { key: "analytics",  label: "📊 Analytics" },
   ];
 
   return (
     <div className="space-y-6">
-      {/* Back + Refresh */}
-      <div className="flex items-center justify-between">
-        <button onClick={onBack} className="flex items-center gap-2 text-text-secondary hover:text-text text-sm transition-colors">
-          ← Back to Classes
-        </button>
-        {/* <button
-          onClick={() => fetchStats(true)}
-          className="flex items-center gap-2 text-xs border border-border-strong text-text-secondary hover:text-text hover:border-gray-500 px-3 py-1.5 rounded-lg transition-colors"
-        >
-          ↻ Refresh Stats
-        </button> */}
-        <button
-          onClick={async () => {
-            setStatsLoading(true);
-            setStatsError("");
-            try {
-              if (role === "teacher") {
-                const s = await recomputeClassroomStatsAPI(classroomId ?? "");
-                setClassStats(s);
-              } else {
-                const s = await getMyStatsAPI(classroomId ?? "");
-                setMyStats(s);
-              }
-            } catch (err: any) {
-              setStatsError(err?.response?.data?.message ?? "Failed to refresh.");
-            } finally {
-              setStatsLoading(false);
-            }
-          }}
-          className="flex items-center gap-2 text-xs border border-border-strong text-text-secondary hover:text-text hover:border-gray-500 px-3 py-1.5 rounded-lg transition-colors"
-        >
-          ↻ Refresh Stats
-        </button>
-      </div>
+      {/* Back */}
+      <button onClick={onBack} className="flex items-center gap-2 text-text-secondary hover:text-text text-sm transition-colors">
+        ← Back to Classes
+      </button>
 
       {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-4">
@@ -417,19 +388,17 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
         </div>
       </div>
 
-      {/* TEACHER VIEW  */}
+      {/* ── TEACHER VIEW ── */}
       {isTeacher && (
         <>
-          {/* Tabs */}
           <div className="flex gap-1 bg-surface-raised p-1 rounded-xl w-fit">
             {tabs.map((t) => (
               <button
                 key={t.key}
                 onClick={() => handleTabChange(t.key)}
-                className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${activeTab === t.key
-                    ? "bg-surface text-text shadow-sm"
-                    : "text-text-muted hover:text-text"
-                  }`}
+                className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${
+                  activeTab === t.key ? "bg-surface text-text shadow-sm" : "text-text-muted hover:text-text"
+                }`}
               >
                 {t.label}
               </button>
@@ -450,7 +419,7 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
               </div>
               {assignmentsLoading && (
                 <div className="space-y-3">
-                  {[1, 2].map(i => <div key={i} className="h-32 bg-surface-raised rounded-xl animate-pulse" />)}
+                  {[1,2].map(i => <div key={i} className="h-32 bg-surface-raised rounded-xl animate-pulse" />)}
                 </div>
               )}
               {!assignmentsLoading && assignmentsError && (
@@ -497,9 +466,7 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
               {students.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-text-muted text-sm">No students enrolled yet.</p>
-                  <p className="text-text-faint text-xs mt-1">
-                    Share code <span className="font-mono text-text-secondary">{classroom.classCode}</span>
-                  </p>
+                  <p className="text-text-faint text-xs mt-1">Share code <span className="font-mono text-text-secondary">{classroom.classCode}</span></p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
@@ -550,10 +517,25 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
           {/* Analytics Tab */}
           {activeTab === "analytics" && (
             <div className="space-y-4">
+              {/* Refresh button - analytics ke upar, right side */}
+              <div className="flex justify-end">
+                <button
+                  onClick={handleRefreshStats}
+                  disabled={statsLoading}
+                  className="flex items-center gap-2 text-xs border border-border-strong text-text-secondary hover:text-text hover:border-gray-500 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {statsLoading ? (
+                    <><div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" /> Refreshing...</>
+                  ) : (
+                    <>↻ Refresh Stats</>
+                  )}
+                </button>
+              </div>
+
               {statsLoading && (
                 <div className="space-y-4 animate-pulse">
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-surface-raised rounded-xl" />)}
+                    {[1,2,3,4].map(i => <div key={i} className="h-24 bg-surface-raised rounded-xl" />)}
                   </div>
                   <div className="h-48 bg-surface-raised rounded-xl" />
                 </div>
@@ -574,6 +556,7 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
                     stats={classStats}
                     onDownload={handleTeacherOverviewDownload}
                   />
+                  
                   <StudentBreakdownTable
                     perStudent={classStats.perStudent}
                     students={students}
@@ -588,15 +571,15 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
         </>
       )}
 
-      {/*  STUDENT VIEW  */}
+      {/* ── STUDENT VIEW ── */}
       {!isTeacher && (
         <>
-          {/* My Stats Panel */}
+          {/* My Performance - with Refresh button */}
           {statsLoading && (
             <div className="bg-surface rounded-xl border border-border p-5 animate-pulse">
               <div className="h-4 bg-surface-raised rounded w-1/3 mb-4" />
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[1, 2, 3, 4].map(i => <div key={i} className="h-20 bg-surface-raised rounded-xl" />)}
+                {[1,2,3,4].map(i => <div key={i} className="h-20 bg-surface-raised rounded-xl" />)}
               </div>
             </div>
           )}
@@ -607,17 +590,27 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
           )}
           {!statsLoading && !statsError && myStats && (
             <div className="bg-surface rounded-xl border border-border p-5">
-              <h3 className="text-sm font-bold text-text mb-4">My Performance</h3>
+              {/* Header + Refresh button same row */}
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-bold text-text">My Performance</h3>
+                <button
+                  onClick={handleRefreshStats}
+                  disabled={statsLoading}
+                  className="flex items-center gap-2 text-xs border border-border-strong text-text-secondary hover:text-text hover:border-gray-500 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  ↻ Refresh
+                </button>
+              </div>
               <StudentStatsPanel stats={myStats} onDownload={handleStudentDownload} />
             </div>
           )}
 
-          {/* Assignments — with submitted/graded badges */}
+          {/* Assignments */}
           <div className="bg-surface rounded-xl border border-border p-5">
             <h3 className="text-sm font-bold text-text mb-4">Assignments ({assignments.length})</h3>
             {assignmentsLoading && (
               <div className="space-y-3">
-                {[1, 2, 3].map(i => <div key={i} className="h-32 bg-surface-raised rounded-xl animate-pulse" />)}
+                {[1,2,3].map(i => <div key={i} className="h-32 bg-surface-raised rounded-xl animate-pulse" />)}
               </div>
             )}
             {!assignmentsLoading && assignmentsError && (
@@ -633,9 +626,9 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
             {!assignmentsLoading && !assignmentsError && assignments.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {assignments.map((a) => {
-                  const sub = submissionMap[a.id];
+                  const sub       = submissionMap[a.id];
                   const submitted = !!sub;
-                  const isGraded = sub?.marks !== null && sub?.marks !== undefined;
+                  const isGraded  = sub?.marks !== null && sub?.marks !== undefined;
                   return (
                     <AssignmentCard
                       key={a.id}
@@ -667,8 +660,6 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeleteTarget(null)}
       />
-
-      {/* Remove Student Confirm Modal */}
       {confirmRemove && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
           <div className="bg-surface border border-border-strong rounded-2xl w-full max-w-sm p-6">
@@ -676,9 +667,7 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
             <p className="text-text-secondary text-sm mb-2">
               Remove <span className="text-text font-semibold">"{confirmRemove.name}"</span>?
             </p>
-            <p className="text-yellow-500 text-xs mb-6">
-              ⚠ Student will need to rejoin using the class code.
-            </p>
+            <p className="text-yellow-500 text-xs mb-6">⚠ Student will need to rejoin using the class code.</p>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => { setConfirmRemove(null); setRemoveError(""); }}
