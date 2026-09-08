@@ -158,9 +158,28 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
           const s = await getClassroomStatsAPI(classroomId);
           setClassStats(s);
         } else {
-          const s = await getMyStatsAPI(classroomId);
-          setMyStats(s);
-        }
+  const s = await recomputeClassroomStatsAPI(classroomId);
+  const myEntry = s.perStudent?.find(
+    (ps: any) => ps.studentId?.toString() === user?.id
+  );
+  const gradedCount = myEntry?.gradedCount ?? myEntry?.performanceTrend?.length ?? 0;
+  setMyStats({
+    classroomId:            s.classroomId,
+    studentId:              myEntry?.studentId ?? "",
+    mySubmissionsMade:      myEntry?.submissionsMade ?? 0,
+    myTotalAssignments:     s.totalAssignments,
+    myAverageScore:         myEntry?.averageScore ?? null,
+    myPerformanceTrend:     myEntry?.performanceTrend ?? [],
+    myNotSubmitted:         s.totalAssignments - (myEntry?.submissionsMade ?? 0),
+    myMissingAssignmentIds: myEntry?.missingAssignmentIds ?? [],
+    myGradedCount:          gradedCount,
+    myClassRank:            myEntry?.classRank ?? null,
+    myRankPosition:         null,
+    totalStudents:          s.perStudent?.length ?? 0,
+    classAverageScore:      s.classAverageScore,
+    computedAt:             s.computedAt,
+  });
+}
       } catch { }
     } finally {
       if (showLoader) setStatsLoading(false);
@@ -439,7 +458,7 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
                 </div>
               )}
               {!assignmentsLoading && !assignmentsError && assignments.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {assignments.map((a) => (
                     <AssignmentCard
                       key={a.id}
@@ -624,7 +643,7 @@ const ClassroomDetail: FC<Props> = ({ role }) => {
               </div>
             )}
             {!assignmentsLoading && !assignmentsError && assignments.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {assignments.map((a) => {
                   const sub       = submissionMap[a.id];
                   const submitted = !!sub;

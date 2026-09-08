@@ -118,14 +118,6 @@ const StudentStatsPanel: FC<Props> = ({ stats, onDownload }) => {
         )}
       </div>
 
-      {/* Not submitted warning */}
-      {notSubmitted > 0 && (
-        <div className="bg-red-900/20 border border-red-800 rounded-xl p-4">
-          <p className="text-red-400 text-xs font-bold mb-1">{notSubmitted} Not Submitted</p>
-          <p className="text-red-500 text-[10px]">Assignments not yet submitted.</p>
-        </div>
-      )}
-
       {/* Trend chart */}
       <PerformanceTrendChart trend={stats.myPerformanceTrend} title="My Performance Trend" />
     </div>
