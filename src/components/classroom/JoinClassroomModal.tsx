@@ -99,7 +99,7 @@ const JoinClassroomModal: FC<Props> = ({
           <button
             onClick={handleSubmit}
             disabled={isLoading}
-            className="flex-1 bg-primary text-primary-foreground py-2.5 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="flex-1 bg-primary text-primary-foreground py-2.5 rounded-xl text-sm font-bold transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>

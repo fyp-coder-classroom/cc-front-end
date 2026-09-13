@@ -1,12 +1,9 @@
-// ─────────────────────────────────────────────
-// components/ui/ProgressBar.tsx
 // Accessible horizontal progress bar.
 // Props:
-//   value  — current value (default: 0)
-//   max    — maximum value (default: 100)
-//   color  — Tailwind bg class (default: "bg-white")
+//   value  - current value (default: 0)
+//   max    - maximum value (default: 100)
+//   color  - Tailwind bg class (default: "bg-white")
 // Usage: <ProgressBar value={75} color="bg-green-500" />
-// ─────────────────────────────────────────────
 
 import type { FC } from "react";
 import type { ProgressBarProps } from "../../types";

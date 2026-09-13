@@ -81,7 +81,7 @@ const AppShell: FC<AppShellProps> = ({ role }) => {
               <Route
                 path="classes/:classroomId/assignments/:assignmentId"
                 element={<AssignmentDetail role={role} />}
-              />           
+              />
 
               {/* Single submission detail - teacher */}
               <Route

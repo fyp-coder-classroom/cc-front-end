@@ -1,4 +1,3 @@
-// hooks/useAssignments.ts
 // Usage: const { assignments, isLoading, error, createAssignment, deleteAssignment } = useAssignments(classroomId);
 
 import { useState, useEffect, useCallback } from "react";

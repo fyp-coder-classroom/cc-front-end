@@ -1,6 +1,6 @@
 import { useState, type FC } from "react";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams} from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import type { Role } from "../../types/auth";
 import PreAuthLayout from "../../components/layout/PreAuthLayout";
@@ -24,7 +24,13 @@ const FEATURE_LIST = [
 const SignUpPage: FC = () => {
   const { register: registerUser } = useAuth();
   const navigate = useNavigate();
-  const [role, setRole] = useState<Role>("student");
+  const [searchParams] = useSearchParams();
+
+const roleFromUrl = searchParams.get("role");
+
+const [role, setRole] = useState<Role>(
+  roleFromUrl === "teacher" ? "teacher" : "student"
+);
   const [backendError, setBackendError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -186,10 +192,11 @@ const SignUpPage: FC = () => {
             type="submit"
             disabled={isLoading}
             className="w-full bg-black text-white py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2
-                       hover:bg-surface-raised transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                        disabled:opacity-60 disabled:cursor-not-allowed"
+
           >
             {isLoading ? (
-              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span className="w-4 h-4 border-2 border-white white border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
                 Create Account <ChevronRight />

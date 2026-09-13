@@ -99,7 +99,7 @@ const RunCodePanel: FC<Props> = ({ code, language }) => {
             />
             {justRevealed && (
               <p className="text-[11px] text-yellow-500/80 mt-1">
-                This program looks like it reads input — add it above, then hit
+                This program looks like it reads input - add it above, then hit
                 Run again. (If it reads inside a loop, make sure you've included
                 enough lines.)
               </p>

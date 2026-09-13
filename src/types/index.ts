@@ -157,35 +157,21 @@ export interface SidebarProps {
   role: Role;
   activePage: Page;
   setPage: (page: Page) => void;
-  onLogout: () => void; // replaces setScreen — calls useAuth().logout()
+  onLogout: () => void; // replaces setScreen - calls useAuth().logout()
 }
 
 export interface AppShellProps {
   role: Role;
-  // setScreen removed — navigation is driven by AuthContext user state
+  // setScreen removed - navigation is driven by AuthContext user state
 }
 
 export interface AuthPageProps {
   setScreen: (screen: Screen) => void;
-  // setRole removed — role comes from AuthContext user.role
+  // setRole removed - role comes from AuthContext user.role
 }
 
 export interface LandingPageProps {
   setScreen: (screen: Screen) => void;
-}
-
-export interface ClassCardProps {
-  title: string;
-  desc: string;
-  meta: string;
-  code?: string;
-  progress?: number;
-  status?: BadgeStatus;
-  onClick?: () => void;
-}
-
-export interface AssignmentTableProps {
-  assignments: Assignment[];
 }
 
 export interface StatCardProps {

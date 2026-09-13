@@ -1,10 +1,7 @@
-// ─────────────────────────────────────────────
-// components/ui/Badge.tsx
 // Displays a colored status pill label.
 // Props:
-//   status — BadgeStatus union type
+//   status - BadgeStatus union type
 // Usage: <Badge status="Graded" />
-// ─────────────────────────────────────────────
 
 import type { FC } from "react";
 import type { BadgeProps, BadgeStatus } from "../../types";

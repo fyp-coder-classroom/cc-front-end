@@ -33,7 +33,7 @@ const ClassroomCard: FC<Props> = ({ classroom, role, onClick, onDelete }) => {
       onClick={() => onClick(classroom.id)}
       className="bg-surface rounded-xl border border-border p-5 hover:border-gray-600 transition-colors cursor-pointer group"
     >
-      {/* ── Header ── */}
+      {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="w-9 h-9 bg-surface-raised rounded-lg flex items-center justify-center text-text">
           <CodeIcon />
@@ -43,7 +43,7 @@ const ClassroomCard: FC<Props> = ({ classroom, role, onClick, onDelete }) => {
         </span>
       </div>
 
-      {/* ── Content ── */}
+      {/*  Content  */}
       <h3 className="text-text font-bold text-sm mb-1 truncate">
         {classroom.name}
       </h3>
@@ -51,7 +51,7 @@ const ClassroomCard: FC<Props> = ({ classroom, role, onClick, onDelete }) => {
         {classroom.description || "No description provided."}
       </p>
 
-      {/* ── Meta ── */}
+      {/*  Meta  */}
       <div className="text-xs text-text-secondary mb-3">
         {isTeacher ? (
           <span>{studentCount} Students</span>
@@ -60,7 +60,7 @@ const ClassroomCard: FC<Props> = ({ classroom, role, onClick, onDelete }) => {
             Teacher:{" "}
             {typeof classroom.teacherId === "object"
               ? classroom.teacherId.name
-              : "—"}
+              : "--"}
           </span>
         )}
       </div>

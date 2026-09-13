@@ -27,6 +27,8 @@ int main() {
     return 0;
 }
 `,
+  java: 'This is java\n',
+
 };
 
 const getTimeLeft = (deadline: string) => {
@@ -563,18 +565,6 @@ const AssignmentDetail: FC<Props> = ({ role }) => {
     useState(STARTER_CODE.python);
 
   //  RESTORE SAVED CODE
-
-  // useEffect(() => {
-  //   if (!assignmentId) return;
-
-  //   const saved = localStorage.getItem(
-  //     `code_draft_${assignmentId}`
-  //   );
-
-  //   if (saved) {
-  //     setCode(saved);
-  //   }
-  // }, [assignmentId]);
   useEffect(() => {
     if (!assignmentId) return;
 

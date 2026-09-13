@@ -153,8 +153,14 @@ const LandingPage: FC = () => {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {ROLES_INFO.map((r) => (
-            <RoleCard key={r.role} r={r} onSignup={() => navigate("/signup")} />
-          ))}
+  <RoleCard
+    key={r.role}
+    r={r}
+    onSignup={() =>
+      navigate(r.role === "Teacher" ? "/signup?role=teacher" : "/signup?role=student")
+    }
+  />
+))}
         </div>
       </section>
     </div>

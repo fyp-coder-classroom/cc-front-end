@@ -1,13 +1,3 @@
-// components/assignment/EditAssignmentModal.tsx
-// Teacher edits an existing assignment. Same fields as create:
-// title, statement, marks, deadline — pre-filled from the assignment
-// being edited.
-//
-// Uses the same split date + time inputs as CreateAssignmentModal,
-// for the same reason: the combined datetime-local picker's native
-// popup gets silently clipped by this modal's overflow-y-auto
-// ancestor, making it look "stuck" with no console error.
-
 import { useState, useMemo, type FC } from "react";
 import type { Assignment, UpdateAssignmentBody } from "../../types/assignment";
 
@@ -190,7 +180,7 @@ const EditAssignmentModal: FC<Props> = ({
             />
           </div>
 
-          {/* Deadline — split date + time */}
+          {/* Deadline - split date + time */}
           <div>
             <label className="text-text-secondary text-xs mb-1 block">
               Deadline <span className="text-red-400">*</span>
