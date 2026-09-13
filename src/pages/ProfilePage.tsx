@@ -43,14 +43,18 @@ const ProfilePage: FC = () => {
           <div className="border-t border-border pt-4">
             <p className="text-text-muted text-xs mb-1">Email Address</p>
             <p className="text-text text-sm font-medium">
-              {user?.email ?? "—"}
+              {user?.email ?? "--"}
             </p>
           </div>
           <div className="border-t border-border pt-4">
             <p className="text-text-muted text-xs mb-1">Role</p>
             <p className="text-text text-sm font-medium capitalize">
-              {user?.role ?? "—"}
+              {user?.role ?? "--"}
             </p>
+          </div>
+          <div className="border-t border-border pt-4">
+            <p className="text-text-muted text-xs mb-1">User ID</p>
+            <p className="text-text text-sm font-medium">{user?.id ?? "--"}</p>
           </div>
           <div className="border-t border-border pt-4">
             <p className="text-text-muted text-xs mb-1">Member Since</p>

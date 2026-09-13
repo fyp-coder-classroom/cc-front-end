@@ -32,14 +32,13 @@ const ClassOverviewCards: FC<Props> = ({ stats, onDownload }) => {
 
   const cards = [
     { label: "Class Avg Score",    value: fmt(stats.classAverageScore),   color: "text-text"       },
-      { label: "On-Time Submission",       value: fmt(stats.onTimeSubmissionRate), color: "text-green-400"  },
     { label: "Participation Rate", value: fmt(stats.participationRate),    color: "text-blue-400"   },
     { label: "Grading Backlog",    value: String(stats.gradingBacklog),    color: stats.gradingBacklog > 0 ? "text-yellow-400" : "text-text" },
   ];
 
   return (
     <div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-3">
         {cards.map((c) => (
           <div key={c.label} className="bg-surface border border-border rounded-xl p-4 text-center">
             <p className="text-text-muted text-xs mb-1">{c.label}</p>

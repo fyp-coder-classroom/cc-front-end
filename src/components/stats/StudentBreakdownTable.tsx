@@ -11,17 +11,15 @@ interface Props {
   totalAssignments: number;
 }
 
-type SortKey = "averageScore" | "notSubmitted" | "graded";
+type SortKey = "averageScore" ;
 
 const downloadStudentXLSX = (student: StudentInfo, ps: any, total: number) => {
   const headers = ["Metric", "Value"];
-  const notSub = total - ps.submissionsMade;
   const rows: (string | number)[][] = [
     ["Student Name", student.name],
     ["Email", student.email],
     ["Submitted", `${ps.submissionsMade}/${total}`],
     ["Avg Score", ps.averageScore != null ? `${ps.averageScore.toFixed(1)}%` : "--"],
-    ["Not Submitted", notSub],
     ["Class Rank", ps.classRank?.replace("_", " ") ?? "--"],
   ];
   const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
@@ -35,7 +33,6 @@ const downloadStudentPDF = async (student: StudentInfo, ps: any, total: number) 
   const { jsPDF } = await import("jspdf");
   const autoTable = (await import("jspdf-autotable")).default;
   const doc = new jsPDF();
-  const notSub = total - ps.submissionsMade;
   doc.setFontSize(13);
   doc.text(`${student.name} -- Student Stats`, 14, 16);
   doc.setFontSize(9);
@@ -46,7 +43,6 @@ const downloadStudentPDF = async (student: StudentInfo, ps: any, total: number) 
     body: [
       ["Submitted", `${ps.submissionsMade}/${total}`],
       ["Avg Score", ps.averageScore != null ? `${ps.averageScore.toFixed(1)}%` : "--"],
-      ["Not Submitted", String(notSub)],
       ["Class Rank", ps.classRank?.replace("_", " ") ?? "--"],
     ],
     styles: { fontSize: 9 },
@@ -99,12 +95,10 @@ const DownloadMenu: FC<{ student: StudentInfo; ps: any; total: number }> = ({ st
 
 //  Expanded Detail Row 
 const StudentDetailRow: FC<{ ps: any; total: number }> = ({ ps, total }) => {
-  const notSub = total - ps.submissionsMade;
-
   return (
     <tr className="bg-surface-raised/60 border-b border-border">
       <td colSpan={8} className="px-6 py-4">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+        <div className="grid grid-cols-2 sm:grid-cols-2 gap-3 mb-3">
           {[
             {
               label: "Avg Score",
@@ -114,7 +108,6 @@ const StudentDetailRow: FC<{ ps: any; total: number }> = ({ ps, total }) => {
                 : "text-text-muted",
             },
             { label: "Submitted", value: `${ps.submissionsMade}/${total}`, color: "text-text" },
-            { label: "Not Submitted", value: String(notSub), color: notSub > 0 ? "text-red-400" : "text-green-400" },
           ].map((c) => (
             <div key={c.label} className="bg-surface border border-border rounded-lg p-3 text-center">
               <p className="text-text-muted text-[10px] mb-1">{c.label}</p>
@@ -149,14 +142,10 @@ const StudentBreakdownTable: FC<Props> = ({ perStudent, students, classroomId, t
       const info = students.find(
         (s) => s.id === ps.studentId || (s as any)._id === ps.studentId
       );
-      const notSubmitted = totalAssignments - ps.submissionsMade;
-      const graded = ps.gradedCount ?? 0;
       return {
         ...ps,
         name: info?.name ?? "--",
         email: info?.email ?? "--",
-        notSubmitted,
-        graded,
       };
     })
     .sort((a, b) => {
@@ -164,11 +153,7 @@ const StudentBreakdownTable: FC<Props> = ({ perStudent, students, classroomId, t
         const aS = a.averageScore ?? -1, bS = b.averageScore ?? -1;
         return bS !== aS ? bS - aS : a.name.localeCompare(b.name);
       }
-      if (sortKey === "notSubmitted") {
-        return b.notSubmitted !== a.notSubmitted
-          ? b.notSubmitted - a.notSubmitted
-          : a.name.localeCompare(b.name);
-      }
+      return 0;
     });
 
   const rankColor = (rank: PerStudentStats["classRank"]) =>
@@ -190,7 +175,6 @@ const StudentBreakdownTable: FC<Props> = ({ perStudent, students, classroomId, t
         <div className="flex items-center gap-2 flex-wrap">
           {([
             { key: "averageScore", label: "Avg Score" },
-            { key: "notSubmitted", label: "Not Submitted" },
           ] as { key: SortKey; label: string }[]).map((s) => (
             <button
               key={s.key}
@@ -215,7 +199,7 @@ const StudentBreakdownTable: FC<Props> = ({ perStudent, students, classroomId, t
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-border">
-                {["Rank", "Student", "Submitted", "Avg Score", "Not Submitted", "Class Rank", ""].map(h => (
+                {["Rank", "Student", "Submitted", "Avg Score", "Class Rank", ""].map(h => (
                   <th key={h} className="text-left text-text-muted py-3 px-4 font-medium whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -257,14 +241,7 @@ const StudentBreakdownTable: FC<Props> = ({ perStudent, students, classroomId, t
                           {r.averageScore.toFixed(1)}%
                         </span>
                       ) : <span className="text-text-muted">--</span>}
-                    </td>
-
-                    {/* Not Submitted */}
-                    <td className="py-3 px-4">
-                      {r.notSubmitted > 0
-                        ? <span className="text-red-400 font-medium">{r.notSubmitted}</span>
-                        : <span className="text-green-400">0</span>}
-                    </td>
+                    </td>                   
 
                     {/* Class Rank */}
                     <td className="py-3 px-4">

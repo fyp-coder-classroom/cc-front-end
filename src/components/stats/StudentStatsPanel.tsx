@@ -3,25 +3,25 @@ import type { MyStats } from "../../types/stats";
 import PerformanceTrendChart from "./PerformanceTrendChart";
 
 interface Props {
-  stats:      MyStats;
+  stats: MyStats;
   onDownload: (format: "xlsx" | "pdf") => void;
 }
 
 export const timeAgo = (iso: string) => {
   const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-  if (diff < 60)   return `${diff}s ago`;
+  if (diff < 60) return `${diff}s ago`;
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   return `${Math.floor(diff / 3600)}h ago`;
 };
 
 const rankColor = (rank: MyStats["myClassRank"]) =>
   rank === "above_average" ? "text-green-400" :
-  rank === "below_average" ? "text-red-400"   : "text-yellow-400";
+    rank === "below_average" ? "text-red-400" : "text-yellow-400";
 
 const rankLabel = (rank: MyStats["myClassRank"]) =>
-  rank === "above_average" ? "Above Average"  :
-  rank === "below_average" ? "Below Average"  :
-  rank === "around_average" ? "Around Average" : "--";
+  rank === "above_average" ? "Above Average" :
+    rank === "below_average" ? "Below Average" :
+      rank === "around_average" ? "Around Average" : "--";
 
 const StudentStatsPanel: FC<Props> = ({ stats, onDownload }) => {
   const [showDl, setShowDl] = useState(false);
@@ -55,8 +55,7 @@ const StudentStatsPanel: FC<Props> = ({ stats, onDownload }) => {
         ? (stats.myAverageScore >= 50 ? "text-green-400" : "text-red-400")
         : "text-text-muted",
     },
-    { label: "Submitted",     value: `${stats.mySubmissionsMade}/${stats.myTotalAssignments}`, color: "text-text" },
-    { label: "Not Submitted", value: String(notSubmitted), color: notSubmitted > 0 ? "text-red-400" : "text-green-400" },
+    { label: "Submitted", value: `${stats.mySubmissionsMade}/${stats.myTotalAssignments}`, color: "text-text" },
   ];
 
   return (
@@ -77,7 +76,7 @@ const StudentStatsPanel: FC<Props> = ({ stats, onDownload }) => {
                 className="w-full px-3 py-2.5 text-xs text-text hover:bg-surface-raised transition-colors text-left">
                 📊 Excel
               </button>
-              <div className="border-t border-border"/>
+              <div className="border-t border-border" />
               <button onClick={() => { onDownload("pdf"); setShowDl(false); }}
                 className="w-full px-3 py-2.5 text-xs text-text hover:bg-surface-raised transition-colors text-left">
                 📄 PDF
@@ -88,9 +87,12 @@ const StudentStatsPanel: FC<Props> = ({ stats, onDownload }) => {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         {cards.map((c) => (
-          <div key={c.label} className="bg-surface border border-border rounded-xl p-4 text-center">
+          <div
+            key={c.label}
+            className="bg-surface border border-border rounded-xl p-4 text-center"
+          >
             <p className="text-text-muted text-xs mb-1">{c.label}</p>
             <p className={`text-lg font-black ${c.color}`}>{c.value}</p>
           </div>
