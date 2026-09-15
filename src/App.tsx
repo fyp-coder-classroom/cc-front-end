@@ -3,6 +3,10 @@ import PublicLayout from "./components/layout/PublicLayout";
 import LandingPage from "./pages/LandingPage";
 import SignInPage from "./pages/auth/SignInPage";
 import SignUpPage from "./pages/auth/SignUpPage";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import VerifyResetOtpPage from "./pages/auth/VerifyResetOtpPage";
+import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
+import VerifyRegistrationOtpPage from "./pages/auth/VerifyRegistrationOtpPage";
 import AppShell from "./components/layout/AppShell";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
@@ -65,6 +69,48 @@ const App = () => {
             auth
               ? <Navigate to="/app" replace />
               : <PageTransition><SignUpPage /></PageTransition>
+          }
+        />
+
+        {/* Verify Registration OTP (step 2 of signup - user is only
+            actually created in the DB once this succeeds) */}
+        <Route
+          path="/verify-registration"
+          element={
+            auth
+              ? <Navigate to="/app" replace />
+              : <PageTransition><VerifyRegistrationOtpPage /></PageTransition>
+          }
+        />
+
+        {/* Forgot Password - step 1: request OTP */}
+        <Route
+          path="/forgot-password"
+          element={
+            auth
+              ? <Navigate to="/app" replace />
+              : <PageTransition><ForgotPasswordPage /></PageTransition>
+          }
+        />
+
+        {/* Forgot Password - step 2: verify OTP, get resetToken */}
+        <Route
+          path="/verify-reset-otp"
+          element={
+            auth
+              ? <Navigate to="/app" replace />
+              : <PageTransition><VerifyResetOtpPage /></PageTransition>
+          }
+        />
+
+        {/* Forgot Password - step 3: set new password using resetToken
+            (resetToken travels via router state, not a URL query param) */}
+        <Route
+          path="/reset-password"
+          element={
+            auth
+              ? <Navigate to="/app" replace />
+              : <PageTransition><ResetPasswordPage /></PageTransition>
           }
         />
 

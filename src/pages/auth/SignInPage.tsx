@@ -43,8 +43,8 @@ const SignInPage: FC = () => {
       });
     } catch (err: unknown) {
       const message =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Invalid email or password.";
+        (err as { response?: { data?: { message?: string } } })?.response
+          ?.data?.message ?? "Invalid email or password.";
 
       setBackendError(message);
     } finally {
@@ -113,6 +113,15 @@ const SignInPage: FC = () => {
           {errors.password && (
             <p className="text-xs text-red-500">{errors.password.message}</p>
           )}
+
+          <div className="text-right -mt-2">
+            <Link
+              to="/forgot-password"
+              className="text-xs text-text-muted hover:text-black hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
 
           <button
             type="submit"

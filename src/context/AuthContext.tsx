@@ -13,7 +13,12 @@ import type {
   LoginCredentials,
   RegisterCredentials,
 } from "../types/auth";
-import { loginAPI, registerAPI, logoutAPI } from "../services/authService";
+import {
+  loginAPI,
+  initiateRegistrationAPI,
+  completeRegistrationAPI,
+  logoutAPI,
+} from "../services/authService";
 import { clearAuthStorage, STORAGE_KEYS } from "../services/api";
 
 interface AuthContextValue {
@@ -21,7 +26,10 @@ interface AuthContextValue {
   token: string | null;
   isLoading: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
-  register: (credentials: RegisterCredentials) => Promise<void>;
+  initiateRegistration: (
+    credentials: RegisterCredentials,
+  ) => Promise<{ registrationToken: string }>;
+  completeRegistration: (registrationToken: string, otp: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -76,13 +84,29 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     [persistAuth],
   );
 
-  // Register - user need to signin after registration, so no token save here
-  const register = useCallback(
+  // Registration step 1 - just sends the OTP, no user created yet,
+  // no auth state touched here.
+  const initiateRegistration = useCallback(
     async (credentials: RegisterCredentials) => {
-      await registerAPI(credentials);
-      // NO persistAuth - by design
+      const res = await initiateRegistrationAPI(credentials);
+      return { registrationToken: res.registrationToken };
     },
     [],
+  );
+
+  // Registration step 2 - verifies the OTP, the user is actually created
+  // on the backend, and the response looks just like login's response
+  // (`{ user, authTokens }`), so we auto-login immediately.
+  const completeRegistration = useCallback(
+    async (registrationToken: string, otp: string) => {
+      const res = await completeRegistrationAPI(registrationToken, otp);
+      persistAuth(
+        res.user,
+        res.authTokens.access.token,
+        res.authTokens.refresh.token,
+      );
+    },
+    [persistAuth],
   );
 
   // Logout
@@ -104,7 +128,17 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        isLoading,
+        login,
+        initiateRegistration,
+        completeRegistration,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

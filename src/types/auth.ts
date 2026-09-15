@@ -34,3 +34,15 @@ export interface RegisterCredentials {
   password: string;
   role:     Role;
 }
+
+/** Response from POST /auth/register/initiate */
+export interface InitiateRegistrationResponse {
+  message: string;
+  registrationToken: string;
+}
+
+/** Response from POST /auth/verify-reset-otp */
+export interface VerifyResetOtpResponse {
+  message: string;
+  resetToken: string;
+}
