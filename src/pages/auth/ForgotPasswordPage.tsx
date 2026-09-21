@@ -19,7 +19,6 @@ const FEATURE_LIST: string[] = [
 
 const ForgotPasswordPage: FC = () => {
   const navigate = useNavigate();
-  const [backendError, setBackendError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -29,25 +28,33 @@ const ForgotPasswordPage: FC = () => {
   } = useForm<ForgotPasswordForm>();
 
   const onSubmit = async (data: ForgotPasswordForm) => {
-    setBackendError("");
     setIsLoading(true);
 
+    const email = data.email.trim();
+    // Security note: regardless of whether the backend actually found
+    // an account for this email (it may 404 if not), we always move the
+    // user forward to the OTP screen with the same generic wording. This
+    // avoids leaking whether a given email is registered ("email
+    // enumeration") - a real attacker gets no signal either way.
     try {
-      const email = data.email.trim();
-      // Sends a 6-digit OTP to the email (backend: POST /auth/forgot-password).
-      // Note: unlike a typical "always say success" flow, this backend
-      // returns a 404 if the email isn't registered, so we surface that
-      // as a real error instead of pretending it worked.
       await forgotPasswordAPI(email);
-      navigate("/verify-reset-otp", { state: { email } });
-    } catch (err: unknown) {
-      const message =
-        (err as { response?: { data?: { message?: string } } })?.response
-          ?.data?.message ?? "Something went wrong. Please try again.";
-      setBackendError(message);
+    } catch {
+      // Intentionally ignored - see note above.
     } finally {
       setIsLoading(false);
     }
+    // Absolute timestamps (not plain countdown numbers) - carried as router
+    // state so the OTP page's countdowns survive a page refresh instead of
+    // resetting back to their starting values every time.
+    // expiresAt matches backend OTP_EXPIRATION_MINUTES=2 in .env.example -
+    // update OTP_TTL_MINUTES below if that .env value changes.
+    const OTP_TTL_MINUTES = 2;
+    const RESEND_COOLDOWN_SECONDS = 2 * 60; // 2 minutes
+    const expiresAt = Date.now() + OTP_TTL_MINUTES * 60 * 1000;
+    const resendAvailableAt = Date.now() + RESEND_COOLDOWN_SECONDS * 1000;
+    navigate("/verify-reset-otp", {
+      state: { email, expiresAt, resendAvailableAt },
+    });
   };
 
   return (
@@ -67,12 +74,6 @@ const ForgotPasswordPage: FC = () => {
           Enter the email linked to your account and we'll send you a 6-digit
           code to reset your password.
         </p>
-
-        {backendError && (
-          <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-3 py-2 rounded-lg mb-4">
-            {backendError}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <input

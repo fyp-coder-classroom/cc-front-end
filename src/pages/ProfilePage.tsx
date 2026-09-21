@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 
 const ProfilePage: FC = () => {
   const { user } = useAuth();
-  const userName = (user as any)?.name ?? "User";
+  const userName = user?.name ?? "User";
 
   return (
     <div>

@@ -20,13 +20,13 @@ const Footer: FC = () => {
         <div className="flex items-center gap-6 text-xs text-text-secondary">
           <a
             href="#features"
-            className="hover:text-black transition-colors duration-200"
+            className="hover:text-white transition-colors duration-200"
           >
             Features
           </a>
           <a
             href="#who"
-            className="hover:text-black transition-colors duration-200"
+            className="hover:text-white transition-colors duration-200"
           >
             About
           </a>

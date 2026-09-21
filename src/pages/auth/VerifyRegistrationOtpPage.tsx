@@ -144,7 +144,7 @@ const VerifyRegistrationOtpPage: FC = () => {
     }
   };
 
-  // ── No registration in progress (page opened directly / refreshed) ──
+  // No registration in progress (page opened directly / refreshed)
   if (!registrationToken || !credentials) {
     return (
       <PreAuthLayout
