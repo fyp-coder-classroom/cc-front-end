@@ -25,11 +25,6 @@ const CreateAssignmentModal: FC<Props> = ({
   onCreate,
   isLoading,
 }) => {
-  // Frozen once at mount - NOT recomputed on every render. Recomputing
-  // `new Date()` directly inside JSX on every render was the original
-  // bug: the "min" date kept drifting forward by a few seconds/render,
-  // racing against whatever the user just picked, which made the
-  // browser silently reject the value with no console error.
   const todayMin = useMemo(() => toLocalDateValue(new Date()), []);
 
   const [form, setForm] = useState({
@@ -84,6 +79,10 @@ const CreateAssignmentModal: FC<Props> = ({
     }
     if (form.marks < 1) {
       setError("Marks must be at least 1.");
+      return;
+    }
+    if (form.marks > 100) {
+      setError("Marks must be between 1 and 100.");
       return;
     }
 

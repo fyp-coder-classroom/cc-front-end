@@ -65,7 +65,7 @@ const RunCodePanel: FC<Props> = ({ code, language }) => {
 
   const handleRunClick = () => {
     // First click: if the code looks like it reads input and the stdin
-    // box isn't open yet, reveal it and stop — give the student a chance
+    // box isn't open yet, reveal it and stop - give the student a chance
     // to fill it in before we actually hit the backend.
     if (!showStdin && codeExpectsInput(code, language)) {
       setShowStdin(true);
@@ -124,8 +124,8 @@ const RunCodePanel: FC<Props> = ({ code, language }) => {
       </button>
 
       {hasOutput && (
-        <div className="bg-[#0a0a0a] border border-gray-800 rounded-lg overflow-hidden font-mono text-xs">
-          {/* Terminal chrome — matches CodeEditorPreview's aesthetic */}
+        <div className="bg-[rgb(10,10,10)] border border-gray-800 rounded-lg overflow-hidden font-mono text-xs">
+          {/* Terminal chrome - matches CodeEditorPreview's aesthetic */}
           <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-gray-800 bg-[#111]">
             <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
             <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />

@@ -27,7 +27,7 @@ const SignUpPage: FC = () => {
   const [searchParams] = useSearchParams();
   const roleFromUrl = searchParams.get("role");
   const [role, setRole] = useState<Role>(
-    roleFromUrl === "teacher" ? "teacher" : "student"
+    roleFromUrl === "teacher" ? "teacher" : "student",
   );
   const [backendError, setBackendError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -50,12 +50,17 @@ const SignUpPage: FC = () => {
         role,
       };
       const { registrationToken } = await initiateRegistration(credentials);
-      // registrationToken is short-lived (3 min) — we also carry the
-      // original form data so the OTP page can silently re-run
-      // initiateRegistration (i.e. "Resend code") without asking the
-      // user to retype everything.
+      // Absolute timestamps (not plain countdown numbers) - carried as
+      // router state so the OTP page's countdowns survive a page refresh
+      // instead of resetting back to their starting values every time.
+      // TOKEN_TTL_SECONDS here must match the constant in
+      // VerifyRegistrationOtpPage.tsx (and the backend's actual
+      // registrationToken expiry - see auth.service.ts: expiresIn: "3m").
+      const TOKEN_TTL_SECONDS = 3 * 60;
+      const expiresAt = Date.now() + TOKEN_TTL_SECONDS * 1000;
+      const resendAvailableAt = Date.now() + TOKEN_TTL_SECONDS * 1000;
       navigate("/verify-registration", {
-        state: { registrationToken, credentials },
+        state: { registrationToken, credentials, expiresAt, resendAvailableAt },
       });
     } catch (err: unknown) {
       type E = {

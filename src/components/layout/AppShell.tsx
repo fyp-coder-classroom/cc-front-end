@@ -48,27 +48,14 @@ const AppShell: FC<AppShellProps> = ({ role }) => {
           >
             <Routes>
               {/* Dashboard */}
-              <Route
-                index
-                element={
-                  role === "teacher" ? (
-                    <TeacherDashboard />
-                  ) : (
-                    <StudentDashboard />
-                  )
-                }
+              <Route index 
+                element={ role === "teacher" ? (<TeacherDashboard />) : ( <StudentDashboard />)}
               />
 
               {/* My Classes */}
               <Route
                 path="classes"
-                element={
-                  role === "teacher" ? (
-                    <TeacherClasses />
-                  ) : (
-                    <StudentClasses />
-                  )
-                }
+                element={ role === "teacher" ? (<TeacherClasses />) : (<StudentClasses />)}
               />
 
               {/* Classroom detail */}
@@ -90,11 +77,14 @@ const AppShell: FC<AppShellProps> = ({ role }) => {
               />
 
               {/* Profile */}
-              <Route path="profile" element={<ProfilePage />} />
+              <Route path="profile"
+                element={<ProfilePage />} />
 
               {/* Fallback */}
-              <Route path="*" element={<Navigate to="/app" replace />} />
+              <Route path="*" 
+                element={<Navigate to="/app" replace />} />
             </Routes>
+            
           </motion.div>
         </AnimatePresence>
       </main>

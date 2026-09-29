@@ -1,11 +1,5 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  type ClipboardEvent,
-  type FC,
-  type KeyboardEvent,
-} from "react";
+import { useEffect, useRef, useState,
+  type ClipboardEvent, type FC, type KeyboardEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import PreAuthLayout from "../../components/layout/PreAuthLayout";
 import { ChevronRight } from "../../components/ui/Icons";
@@ -146,13 +140,24 @@ const VerifyResetOtpPage: FC = () => {
     } finally {
       setIsResending(false);
     }
-    setExpiresAt(Date.now() + OTP_TTL_SECONDS * 1000);
+
+    const newExpiresAt = Date.now() + OTP_TTL_SECONDS * 1000;
+    const newResendAvailableAt = Date.now() + RESEND_COOLDOWN_SECONDS * 1000;
+
+    setExpiresAt(newExpiresAt);
     setSecondsLeft(OTP_TTL_SECONDS);
-    setResendAvailableAt(Date.now() + RESEND_COOLDOWN_SECONDS * 1000);
+    setResendAvailableAt(newResendAvailableAt);
     setCooldown(RESEND_COOLDOWN_SECONDS);
     setDigits(Array(OTP_LENGTH).fill(""));
     setResendMessage("If an account with this email exists, we've sent a new code.");
     focusInput(0);
+
+    // Persist into history state too, so a refresh doesn't fall back to
+    // the stale expiry that was present when this page first loaded.
+    navigate(location.pathname, {
+      replace: true,
+      state: { email, expiresAt: newExpiresAt, resendAvailableAt: newResendAvailableAt },
+    });
   };
 
   // No email available (page opened directly)
@@ -244,7 +249,7 @@ const VerifyResetOtpPage: FC = () => {
           ) : (
             <>
               Code expires in{" "}
-              <span className="font-semibold text-text">
+              <span className="font-semibold text-red-600">
                 {minutes}:{seconds.toString().padStart(2, "0")}
               </span>
             </>

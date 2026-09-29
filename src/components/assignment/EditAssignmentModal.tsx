@@ -97,6 +97,10 @@ const EditAssignmentModal: FC<Props> = ({
       setError("Marks must be at least 1.");
       return;
     }
+    if (form.marks > 100) {
+      setError("Marks must be between 1 and 100.");
+      return;
+    }
 
     try {
       await onUpdate(assignment.id, {

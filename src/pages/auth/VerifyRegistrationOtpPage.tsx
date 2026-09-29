@@ -1,11 +1,5 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  type ClipboardEvent,
-  type FC,
-  type KeyboardEvent,
-} from "react";
+import { useEffect, useRef, useState,
+  type ClipboardEvent, type FC, type KeyboardEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import PreAuthLayout from "../../components/layout/PreAuthLayout";
 import { ChevronRight } from "../../components/ui/Icons";
@@ -15,7 +9,10 @@ import type { RegisterCredentials } from "../../types/auth";
 const OTP_LENGTH = 6;
 // The registrationToken issued by /auth/register/initiate is only valid
 // for 3 minutes on the backend (see auth.service.ts: expiresIn: "3m").
+// Resend is throttled to the same duration - update both here and in
+// SignUpPage.tsx together if the backend's expiry ever changes.
 const TOKEN_TTL_SECONDS = 3 * 60;
+const RESEND_COOLDOWN_SECONDS = 3 * 60;
 
 const FEATURE_LIST: string[] = [
   "Join or create classrooms",
@@ -28,7 +25,13 @@ const FEATURE_LIST: string[] = [
 interface LocationState {
   registrationToken: string;
   credentials: RegisterCredentials;
+  expiresAt: number; // absolute unix-ms timestamp when the registrationToken expires
+  resendAvailableAt: number; // absolute unix-ms timestamp when "Resend" becomes clickable
 }
+
+// Given an absolute expiry timestamp, how many whole seconds remain (never negative).
+const secondsUntil = (expiresAt: number): number =>
+  Math.max(0, Math.round((expiresAt - Date.now()) / 1000));
 
 const VerifyRegistrationOtpPage: FC = () => {
   const navigate = useNavigate();
@@ -46,20 +49,41 @@ const VerifyRegistrationOtpPage: FC = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [resendMessage, setResendMessage] = useState("");
-  const [secondsLeft, setSecondsLeft] = useState(TOKEN_TTL_SECONDS);
+
+  // Derived from an absolute expiresAt timestamp (not a fixed countdown),
+  // so refreshing the page recalculates the *actual* remaining time
+  // instead of resetting back to a fresh 3 minutes every time.
+  const [expiresAt, setExpiresAt] = useState(
+    state?.expiresAt ?? Date.now() + TOKEN_TTL_SECONDS * 1000,
+  );
+  const [secondsLeft, setSecondsLeft] = useState(() => secondsUntil(expiresAt));
 
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
   // Countdown until the registrationToken (and its embedded OTP) expires.
   useEffect(() => {
-    if (secondsLeft <= 0) return;
-    const timer = setInterval(() => setSecondsLeft((s) => s - 1), 1000);
+    if (secondsUntil(expiresAt) <= 0) return;
+    const timer = setInterval(() => setSecondsLeft(secondsUntil(expiresAt)), 1000);
     return () => clearInterval(timer);
-  }, [secondsLeft]);
+  }, [expiresAt]);
 
   const isExpired = secondsLeft <= 0;
   const minutes = Math.floor(secondsLeft / 60);
   const seconds = secondsLeft % 60;
+
+  // Resend-button cooldown - also derived from an absolute timestamp (not
+  // a fixed counter) so it too survives a page refresh instead of
+  // resetting back to a fresh 3 minutes.
+  const [resendAvailableAt, setResendAvailableAt] = useState(
+    state?.resendAvailableAt ?? Date.now() + RESEND_COOLDOWN_SECONDS * 1000,
+  );
+  const [cooldown, setCooldown] = useState(() => secondsUntil(resendAvailableAt));
+
+  useEffect(() => {
+    if (secondsUntil(resendAvailableAt) <= 0) return;
+    const timer = setInterval(() => setCooldown(secondsUntil(resendAvailableAt)), 1000);
+    return () => clearInterval(timer);
+  }, [resendAvailableAt]);
 
   const focusInput = (index: number) => {
     inputsRef.current[index]?.focus();
@@ -129,11 +153,31 @@ const VerifyRegistrationOtpPage: FC = () => {
       // with the same signup details.
       const { registrationToken: freshToken } =
         await initiateRegistration(credentials);
+
+      const newExpiresAt = Date.now() + TOKEN_TTL_SECONDS * 1000;
+      const newResendAvailableAt = Date.now() + RESEND_COOLDOWN_SECONDS * 1000;
+
       setRegistrationToken(freshToken);
+      setExpiresAt(newExpiresAt);
       setSecondsLeft(TOKEN_TTL_SECONDS);
+      setResendAvailableAt(newResendAvailableAt);
+      setCooldown(RESEND_COOLDOWN_SECONDS);
       setDigits(Array(OTP_LENGTH).fill(""));
-      setResendMessage("A new code has been sent to your email.");
+      setResendMessage("If this email is valid, we've sent a new code to it.");
       focusInput(0);
+
+      // Persist the fresh values into the browser's history entry too -
+      // otherwise a page refresh re-reads the *stale* expiresAt that was
+      // in location.state when this page first loaded.
+      navigate(location.pathname, {
+        replace: true,
+        state: {
+          registrationToken: freshToken,
+          credentials,
+          expiresAt: newExpiresAt,
+          resendAvailableAt: newResendAvailableAt,
+        },
+      });
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response
@@ -191,9 +235,8 @@ const VerifyRegistrationOtpPage: FC = () => {
       <div className="w-full max-w-sm">
         <h1 className="text-3xl font-black mb-2">Verify your email</h1>
         <p className="text-text-muted text-sm mb-6">
-          We've sent a 6-digit code to{" "}
-          <span className="font-semibold text-text">{credentials.email}</span>.
-          Enter it below to create your account.
+          If this email is valid, we've sent a 6-digit code to it. Enter it
+          below to create your account.
         </p>
 
         {backendError && (
@@ -238,7 +281,7 @@ const VerifyRegistrationOtpPage: FC = () => {
           ) : (
             <>
               Code expires in{" "}
-              <span className="font-semibold text-text">
+              <span className="font-semibold text-red-600">
                 {minutes}:{seconds.toString().padStart(2, "0")}
               </span>
             </>
@@ -261,13 +304,20 @@ const VerifyRegistrationOtpPage: FC = () => {
 
         <p className="text-center text-xs text-text-muted mt-5">
           Didn't get the code?{" "}
-          <button
-            onClick={handleResend}
-            disabled={isResending}
-            className="text-black font-semibold hover:underline disabled:opacity-60"
-          >
-            {isResending ? "Sending..." : "Resend code"}
-          </button>
+          {cooldown > 0 ? (
+            <span>
+              Resend in {Math.floor(cooldown / 60)}:
+              {(cooldown % 60).toString().padStart(2, "0")}
+            </span>
+          ) : (
+            <button
+              onClick={handleResend}
+              disabled={isResending}
+              className="text-black font-semibold hover:underline disabled:opacity-60"
+            >
+              {isResending ? "Sending..." : "Resend code"}
+            </button>
+          )}
         </p>
       </div>
     </PreAuthLayout>
