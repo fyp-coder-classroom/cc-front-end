@@ -1,25 +1,7 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useCallback,
-  type FC,
-  type ReactNode,
-} from "react";
-
-import type {
-  User,
-  LoginCredentials,
-  RegisterCredentials,
-} from "../types/auth";
-import {
-  loginAPI,
-  initiateRegistrationAPI,
-  completeRegistrationAPI,
-  logoutAPI,
-} from "../services/authService";
-import { clearAuthStorage, STORAGE_KEYS } from "../services/api";
+import {createContext, useContext, useEffect, useState, useCallback, type FC, type ReactNode} from "react";
+import type {User, LoginCredentials, RegisterCredentials} from "../types/auth";
+import {loginAPI, initiateRegistrationAPI, completeRegistrationAPI, logoutAPI} from "../services/authService";
+import {clearAuthStorage, STORAGE_KEYS } from "../services/api";
 
 interface AuthContextValue {
   user: User | null;
@@ -85,7 +67,6 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   );
 
   // Registration step 1 - just sends the OTP, no user created yet,
-  // no auth state touched here.
   const initiateRegistration = useCallback(
     async (credentials: RegisterCredentials) => {
       const res = await initiateRegistrationAPI(credentials);

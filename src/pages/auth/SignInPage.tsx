@@ -2,6 +2,7 @@ import { useState, type FC } from "react";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { useAuth } from "../../context/AuthContext";
+import { MAX_ATTEMPTS, useLoginAttempts } from "../../hooks/useLoginAttempts";
 import PreAuthLayout from "../../components/layout/PreAuthLayout";
 import { Eye, EyeOff } from "lucide-react";
 import { ChevronRight } from "../../components/ui/Icons";
@@ -19,6 +20,18 @@ const FEATURE_LIST: string[] = [
   "View performance analytics",
 ];
 
+const LAST_EMAIL_KEY = "cc_login_last_email";
+
+// Email of the last failed attempt, so after a refresh the field is pre-filled
+// and the saved lock for that email can be found again.
+const getLastEmail = (): string => {
+  try {
+    return localStorage.getItem(LAST_EMAIL_KEY) ?? "";
+  } catch {
+    return "";
+  }
+};
+
 const SignInPage: FC = () => {
   const { login } = useAuth();
 
@@ -29,10 +42,23 @@ const SignInPage: FC = () => {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
-  } = useForm<SignInForm>();
+  } = useForm<SignInForm>({ defaultValues: { email: getLastEmail() } });
+
+  const emailValue = watch("email") ?? "";
+  const {
+    isLocked,
+    secondsLeft,
+    registerFailure,
+    registerSuccess,
+  } = useLoginAttempts(emailValue);
+
+  const formatTime = (total: number) =>
+    `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
 
   const onSubmit = async (data: SignInForm) => {
+    if (isLocked) return;
     setBackendError("");
     setIsLoading(true);
 
@@ -41,10 +67,28 @@ const SignInPage: FC = () => {
         email: data.email.trim(),
         password: data.password,
       });
+      registerSuccess();
     } catch (err: unknown) {
-      const message =
-        (err as { response?: { data?: { message?: string } } })?.response
-          ?.data?.message ?? "Invalid email or password.";
+      const res = (
+        err as {
+          response?: { status?: number; data?: { message?: string } };
+        }
+      )?.response;
+      let message = res?.data?.message ?? "Invalid email or password.";
+
+      // Only wrong-credential responses (401) count as a failed attempt.
+      if (res?.status === 401) {
+        try {
+          localStorage.setItem(LAST_EMAIL_KEY, data.email.trim());
+        } catch {
+          /* ignore */
+        }
+        const entry = registerFailure();
+        const left = Math.max(0, MAX_ATTEMPTS - entry.attempts);
+        if (entry.lockedUntil === 0) {
+          message += ` (${left} attempt${left === 1 ? "" : "s"} left)`;
+        }
+      }
 
       setBackendError(message);
     } finally {
@@ -66,7 +110,14 @@ const SignInPage: FC = () => {
       <div className="w-full max-w-sm">
         <h1 className="text-3xl font-black mb-6">Sign in to your account</h1>
 
-        {backendError && (
+        {isLocked && (
+          <div className="bg-amber-50 border border-amber-200 text-amber-700 text-sm px-3 py-2 rounded-lg mb-4">
+            Too many failed attempts. Try again in{" "}
+            <span className="font-semibold">{formatTime(secondsLeft)}</span>.
+          </div>
+        )}
+
+        {!isLocked && backendError && (
           <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-3 py-2 rounded-lg mb-4">
             {backendError}
           </div>
@@ -95,6 +146,7 @@ const SignInPage: FC = () => {
               type={showPassword ? "text" : "password"}
               placeholder="Enter your password"
               autoComplete="current-password"
+              disabled={isLocked}
               {...register("password", {
                 required: "Password is required",
               })}
@@ -125,7 +177,7 @@ const SignInPage: FC = () => {
 
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || isLocked}
             className="w-full bg-black text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
           >
             {isLoading ? (

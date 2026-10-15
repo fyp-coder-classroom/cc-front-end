@@ -64,7 +64,7 @@ const ResetPasswordPage: FC = () => {
     }
   };
 
-  // ── No resetToken available (page opened directly / refreshed) ──
+  // No resetToken available (page opened directly / refreshed)
   if (!resetToken) {
     return (
       <PreAuthLayout
@@ -94,7 +94,7 @@ const ResetPasswordPage: FC = () => {
     );
   }
 
-  // ── Success state ──
+  // Success state
   if (isDone) {
     return (
       <PreAuthLayout
@@ -120,7 +120,7 @@ const ResetPasswordPage: FC = () => {
     );
   }
 
-  // ── Default state: new password form ──
+  // Default state: new password form
   return (
     <PreAuthLayout
       leftTitle={
